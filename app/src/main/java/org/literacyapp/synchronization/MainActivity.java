@@ -1,11 +1,17 @@
 package org.literacyapp.synchronization;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +37,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 public class MainActivity extends AppCompatActivity implements SalutDataCallback, View.OnClickListener {
+    public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0;
     private static final String SERVICE_NAME = "LITERACYAPP_SYNCHRONIZATION_SERVICE";
     private static final int PORT = 47474;
     private static final String TEST_FILE_PATH = Environment.getExternalStorageDirectory() + "/img.jpg";
@@ -243,6 +250,39 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 }
             } catch (IOException e) {
                 Log.e(getClass().getName(), null, e);
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Ask for permissions
+        int permissionCheckWriteExternalStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permissionCheckWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+            return;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                // Permission granted
+
+                // Restart application
+                Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            } else {
+                // Permission denied
+
+                // Close application
+                finish();
             }
         }
     }
