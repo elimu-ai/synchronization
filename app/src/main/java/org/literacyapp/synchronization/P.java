@@ -5,5 +5,5 @@ package org.literacyapp.synchronization;
  */
 
 public class P {
-    public static final String Tag = "Sync";
+    public static final String Tag = "sync";
 }
