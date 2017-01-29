@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.net.wifi.WpsInfo;
 
 public class Main2Activity extends AppCompatActivity implements WifiP2pManager.ChannelListener, DeviceActionListener, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener {
 
@@ -28,6 +29,7 @@ public class Main2Activity extends AppCompatActivity implements WifiP2pManager.C
     private WifiP2pManager.Channel channel;
     private BroadcastReceiver receiver = null;
     private boolean autoDiscover = true;
+    private boolean isConnected = false;
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private WifiP2pInfo info;
@@ -79,7 +81,23 @@ public class Main2Activity extends AppCompatActivity implements WifiP2pManager.C
 
     @Override
     public void connect(WifiP2pConfig config) {
+        Log.i(P.Tag, "Connect(WifiP2pConfig config) called.");
+        Toast.makeText(this,"Connecting..." ,Toast.LENGTH_LONG).show();
+        manager.connect(channel, config, new WifiP2pManager.ActionListener() {
 
+            @Override
+            public void onSuccess() {
+                Log.i(P.Tag, "===connect onSuccess()");
+                isConnected = true;
+                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                //  Toast.makeText(WiFiDirectActivity.this, "Connect failed. Retry.",Toast.LENGTH_SHORT).show();
+
+            }
+        });
     }
 
     @Override
@@ -102,7 +120,20 @@ public class Main2Activity extends AppCompatActivity implements WifiP2pManager.C
 
     @Override
     public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
-        Log.d(P.Tag, "Peers Available");
+        Log.d(P.Tag, "==Peers Available");
+        List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
+        peers.addAll(wifiP2pDeviceList.getDeviceList());
+        for (WifiP2pDevice device: peers) {
+            Log.d(P.Tag, "deviceName: " + device.deviceName);
+            Log.d(P.Tag, "deviceAddress: " + device.deviceAddress);
+            Log.d(P.Tag, "device.status: " + device.status);
+            if (device.status != WifiP2pDevice.CONNECTED) {
+                WifiP2pConfig config = new WifiP2pConfig();
+                config.deviceAddress = device.deviceAddress;
+                config.wps.setup = WpsInfo.PBC;
+                connect(config);
+            }
+        }
     }
 
     private class DiscoverAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -185,14 +216,13 @@ public class Main2Activity extends AppCompatActivity implements WifiP2pManager.C
                     // Wifi Direct mode is enabled
                     activity.setIsWifiP2pEnabled(true);
                     Log.d(P.Tag, "autoDiscover: " + autoDiscover);
-                    if (autoDiscover) {
-                        autoDiscover = false;
+                    if (!isConnected) {
                         new DiscoverAsyncTask().execute();
                     }
 
                 } else {
                     activity.setIsWifiP2pEnabled(false);
-                    Log.i(P.Tag, "onReceive calls resetData because WiFI is not enabled");
+                    Log.i(P.Tag, "onReceive calls resetData because WiFi is not enabled");
                     activity.resetData();
 
                 }
@@ -221,9 +251,8 @@ public class Main2Activity extends AppCompatActivity implements WifiP2pManager.C
 
                 NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
-
                 if (networkInfo.isConnected()) {
-                    Log.d(P.Tag , "P2P connected");
+                    Log.d(P.Tag , "==P2P connected==");
                 }
 
 
