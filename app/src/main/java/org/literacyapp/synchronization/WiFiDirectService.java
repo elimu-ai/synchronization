@@ -31,7 +31,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private WifiP2pManager.Channel channel;
     private BroadcastReceiver receiver = null;
     private boolean autoDiscover = true;
-    private boolean isConnected = false;
+
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private WifiP2pInfo info;
@@ -69,8 +69,10 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                new DiscoverAsyncTask().execute();
-                if (isConnected)
+                // if status is FoundPeers or more stop discovery.
+                if  (P.getStatus().ordinal() <= 1)
+                    new DiscoverAsyncTask().execute();
+                else
                     timer.cancel();
             }
         // run every 10 secs (after 1 secs)
@@ -87,6 +89,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         private boolean discover() {
             Log.i(P.Tag, "discover called...");
+            P.setStatus(P.Status.Discovering);
             if (!isWifiP2pEnabled) {
                 Log.w(P.Tag, "isWifiP2pEnabled false");
                 return true;
@@ -163,7 +166,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     // Wifi Direct mode is enabled
                     setIsWifiP2pEnabled(true);
                     Log.d(P.Tag, "autoDiscover: " + autoDiscover);
-                    if (!isConnected) {
+                    if (P.getStatus().ordinal() <= 1) {
                         new DiscoverAsyncTask().execute();
                     }
 
@@ -177,6 +180,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
                 Log.d(P.Tag, "====P2P peers changed");
+                P.setStatus(P.Status.FoundPeers);
 
                 // request available peers from the wifi p2p manager. This is an
                 // asynchronous call and the calling activity is notified with a
@@ -200,6 +204,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                 if (networkInfo.isConnected()) {
                     Log.d(P.Tag , "==P2P connected==");
+                    Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
+                    P.setStatus(P.Status.Connected);
                 }
 
 
@@ -233,13 +239,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     @Override
     public void connect(WifiP2pConfig config) {
         Log.i(P.Tag, "Connect(WifiP2pConfig config) called.");
-        Toast.makeText(this,"Connecting..." ,Toast.LENGTH_LONG).show();
+        Toast.makeText(this,"Connecting..." ,Toast.LENGTH_SHORT).show();
+        P.setStatus(P.Status.Connecting);
         manager.connect(channel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 Log.i(P.Tag, "===connect onSuccess()");
-                isConnected = true;
+                P.setStatus(P.Status.Connected);
                 // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
             }
 
@@ -283,6 +290,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 config.deviceAddress = device.deviceAddress;
                 config.wps.setup = WpsInfo.PBC;
                 connect(config);
+                P.setStatus(P.Status.Connecting);
             }
         }
     }

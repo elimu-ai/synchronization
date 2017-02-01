@@ -5,5 +5,18 @@ package org.literacyapp.synchronization;
  */
 
 public class P {
-    public static final String Tag = "sync";
+    public static final String Tag = "syncl";
+    private static Status mStatus = Status.Idle;
+
+    public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected }
+
+    public static void setStatus(Status status) {
+        mStatus = status;
+    }
+
+    public static Status getStatus() {
+        return mStatus;
+    }
+
+
 }
