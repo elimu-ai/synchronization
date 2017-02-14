@@ -43,6 +43,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private WifiP2pManager.Channel channel;
     private BroadcastReceiver receiver = null;
     private boolean autoDiscover = true;
+    private FileServerAsyncTask fileServerAsyncTask;
+    private int connectingCounter = 0;
 
 
     private static int fileIndex = 0;
@@ -97,6 +99,30 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             }
         // run every 10 secs (after 1 secs)
         }, 1000, 10000);
+
+
+        final Timer connectingWdTimer = new Timer();
+        connectingWdTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                // if status is FoundPeers or more stop discovery.
+                if  (P.getStatus() == P.Status.Connecting) {
+                    connectingCounter++;
+                    Log.d(P.Tag, "connectingCounter: " + connectingCounter);
+                }
+                if (connectingCounter == 5) {
+                    connectingCounter = 0;
+                    Log.d(P.Tag, "connectingCounter starting DiscoverAsyncTask");
+                    new DiscoverAsyncTask().execute();
+                }
+                if (P.getStatus() == P.Status.Connected) {
+                    Log.d(P.Tag, "connectingCounter: connectingWdTimer.cancel()");
+                    connectingWdTimer.cancel();
+                }
+            }
+            // run every 10 secs (after 1 secs)
+        }, 2000, 2000);
 
         return START_STICKY;
     }
@@ -171,8 +197,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             Log.i(P.Tag, "WiFiDirectBroadcastReceiver onReceive called");
             String action = intent.getAction();
 
-
-
             if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
                 // UI update to indicate wifi p2p status.
                 int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
@@ -222,6 +246,9 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     Log.d(P.Tag , "==P2P connected==");
                     Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
                     P.setStatus(P.Status.Connected);
+                    Log.i(P.TAG, "FileServerAsyncTask started listening...");
+                    fileServerAsyncTask = new FileServerAsyncTask();
+                    fileServerAsyncTask.execute();
                     sendTestFile();
                 }
 
@@ -354,6 +381,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             Log.i(P.TAG, "ServerSocket closed.");
         }
 
+        public FileServerAsyncTask() {
+        }
 
 
         public FileServerAsyncTask(ServerSocket serverSocket) {
@@ -444,7 +473,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                 if (serverSocket == null) {
                     serverSocket = new ServerSocket(8988);
-                    Log.d(P.TAG, "Server: Socket opened");
+                    Log.d(P.TAG, "Server: Socket opened (8988)");
                 }
                 // blocking till a client is connecting
                 client = serverSocket.accept();
@@ -455,10 +484,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FT_LOCK");
                 Log.i(P.TAG, "Acquire wake lock");
                 wakeLock.acquire();
-
-
-
-                publishProgress(10);
                 File f = null;
 
                 String outputFolderFromPrefs = P.getOutputFolder(getApplicationContext());
