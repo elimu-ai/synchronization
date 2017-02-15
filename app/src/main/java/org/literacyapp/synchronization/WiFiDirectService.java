@@ -45,6 +45,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private boolean autoDiscover = true;
     private FileServerAsyncTask fileServerAsyncTask;
     private int connectingCounter = 0;
+    private boolean isKillService = false;
 
 
     private static int fileIndex = 0;
@@ -64,6 +65,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
 
     public WiFiDirectService() {
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i(P.Tag, "WiFiDirectService onDestroy called");
+        isKillService = true;
+        P.setStatus(P.Status.Idle);
     }
 
     @Override
@@ -91,6 +100,10 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if (isKillService) {
+                    Log.d(P.Tag, "service is destroyed, stopping timer");
+                    timer.cancel();
+                }
                 // if status is FoundPeers or more stop discovery.
                 if  (P.getStatus().ordinal() <= 1)
                     new DiscoverAsyncTask().execute();
@@ -105,7 +118,10 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         connectingWdTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-
+                if (isKillService) {
+                    Log.d(P.Tag, "service is destroyed, stopping timer");
+                    connectingWdTimer.cancel();
+                }
                 // if status is FoundPeers or more stop discovery.
                 if  (P.getStatus() == P.Status.Connecting) {
                     connectingCounter++;
@@ -156,8 +172,9 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Log.d(P.Tag, "doInBackground");
-            discover();
+            Log.d(P.Tag, "DiscoverAsyncTask doInBackground");
+            if (!isKillService)
+                discover();
             return null;
         }
 

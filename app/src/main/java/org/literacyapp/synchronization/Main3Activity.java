@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
@@ -18,7 +21,7 @@ public class Main3Activity extends AppCompatActivity {
         setContentView(R.layout.activity_main3);
         Intent intent = new Intent(getApplicationContext(), WiFiDirectService.class);
         startService(intent);
-        updateUI ();
+
     }
 
     @Override
@@ -31,6 +34,35 @@ public class Main3Activity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         isUIUpdateRunning = true;
+        updateUI();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        Log.i(P.Tag, "onCreateOptionsMenu");
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_force_stop:
+                Log.i(P.Tag, "action_force_stop selected");
+                Intent i1 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                stopService(i1);
+                return true;
+
+            case R.id.action_start:
+                Log.i(P.Tag, "action_start selected");
+                Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                startService(i2);
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void updateUI () {

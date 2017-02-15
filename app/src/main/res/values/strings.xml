@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Synchronization (LiteracyApp)</string>
+    <string name="force_stop">Force Stop</string>
+    <string name="start">Start</string>
 </resources>
