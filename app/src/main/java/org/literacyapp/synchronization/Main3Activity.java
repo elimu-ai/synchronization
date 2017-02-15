@@ -79,7 +79,7 @@ public class Main3Activity extends AppCompatActivity {
                         }
                         try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
                         final String status = P.getStatus().toString();
-                        Log.d(P.Tag, "check state");
+                        //Log.d(P.Tag, "check state");
                         runOnUiThread(new Runnable() { public void run() { statusText.setText(status); } });
                     }
 

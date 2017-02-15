@@ -73,6 +73,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         Log.i(P.Tag, "WiFiDirectService onDestroy called");
         isKillService = true;
         P.setStatus(P.Status.Idle);
+        if (fileServerAsyncTask != null)
+            fileServerAsyncTask.close();
     }
 
     @Override
@@ -127,7 +129,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     connectingCounter++;
                     Log.d(P.Tag, "connectingCounter: " + connectingCounter);
                 }
-                if (connectingCounter == 5) {
+                if (connectingCounter == 20) {
                     connectingCounter = 0;
                     Log.d(P.Tag, "connectingCounter starting DiscoverAsyncTask");
                     new DiscoverAsyncTask().execute();
@@ -261,11 +263,12 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                 if (networkInfo.isConnected()) {
                     Log.d(P.Tag , "==P2P connected==");
-                    Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
                     P.setStatus(P.Status.Connected);
                     Log.i(P.TAG, "FileServerAsyncTask started listening...");
                     fileServerAsyncTask = new FileServerAsyncTask();
                     fileServerAsyncTask.execute();
+                    try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
                     sendTestFile();
                 }
 
@@ -357,7 +360,11 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     }
 
     private void sendTestFile() {
-
+        Log.d(P.Tag, "sendTestFile()");
+        File testFile = new File("file://android_asset/test.jpg");
+        List<File> l = new ArrayList<File>();
+        l.add(testFile);
+        new FilesSendAsyncTask(getApplicationContext(), l, P.getHostAdress(), 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 
@@ -637,42 +644,27 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     public class FilesSendAsyncTask extends AsyncTask<Void, Integer, Integer> {
         private static final int SOCKET_TIMEOUT = 2000;
         private Context context;
-
-
-        //List<LocalFile> files = null;
         List files = null;
-
-
         private String host = null;
         private int port = -1;
-
         private Socket socket = null;
         private PowerManager.WakeLock wakeLock = null;
 
-
-
         public FilesSendAsyncTask(Context context, List<File> files, String host, int port) {
             this.context = context;
-
-
             this.files = files;
             this.host = host;
             this.port = port;
-
         }
 
 
         public FilesSendAsyncTask(Context context, File folder, String host, int port) {
             this.context = context;
-
             folder2send = folder;
             this.files = new ArrayList<File>();
-
             createFileListFromFolder();
-
             this.host = host;
             this.port = port;
-
         }
 
 
@@ -703,8 +695,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             boolean firstReadSection = true;
             int fileChunks = Math.round( inputFileLength / 1024);
             int chunksCounter = 0;
-
-
             try {
                 while ((len = inputStream.read(buf)) != -1) {
                     if (!firstReadSection) {
@@ -712,7 +702,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         chunksCounter++;
                         int progress = Math.round(((float)chunksCounter / fileChunks) * 100);
                         publishProgress(progress);
-
                     }
                     else {
                         // write meta only the first time
