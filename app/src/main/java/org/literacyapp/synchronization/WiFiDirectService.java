@@ -360,6 +360,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     }
 
     private void sendTestFile() {
+
         Log.d(P.Tag, "sendTestFile()");
         File testFile = new File("file://android_asset/test.jpg");
         List<File> l = new ArrayList<File>();
