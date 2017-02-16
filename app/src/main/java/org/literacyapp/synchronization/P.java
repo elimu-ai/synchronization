@@ -50,13 +50,13 @@ public class P {
         return filePath.substring(index + 1 , filePath.length());
     }
 
-    public static String getHostAdress() {
-        return hostAdress;
-    }
+   // public static String getHostAdress() {
+//        return hostAdress;
+//    }
 
-    public static void setHostAdress(String hostAdress) {
-        P.hostAdress = hostAdress;
-    }
+   // public static void setHostAdress(String hostAdress) {
+//        P.hostAdress = hostAdress;
+//    }
 
 
 }

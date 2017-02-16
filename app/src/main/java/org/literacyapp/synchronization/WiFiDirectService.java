@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.AssetFileDescriptor;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -19,16 +20,20 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -262,14 +267,16 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
                 if (networkInfo.isConnected()) {
-                    Log.d(P.Tag , "==P2P connected==");
+                    Log.i(P.TAG, "==P2P connected==");
                     //Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
                     P.setStatus(P.Status.Connected);
+
+                    manager.requestConnectionInfo(channel, WiFiDirectService.this);
+
                     Log.i(P.TAG, "FileServerAsyncTask started listening...");
                     fileServerAsyncTask = new FileServerAsyncTask();
                     fileServerAsyncTask.execute();
-                    try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
-                    sendTestFile();
+
                 }
 
 
@@ -329,11 +336,13 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        Log.i(P.Tag, "onConnectionInfoAvailable");
+        Log.i(P.Tag, "===onConnectionInfoAvailable");
 
         if (info != null && info.groupOwnerAddress != null) {
             this.info = info;
+
             Log.i(P.Tag, "info.groupOwnerAddress.getHostAddress(): " + info.groupOwnerAddress.getHostAddress());
+            sendTestFile(info.groupOwnerAddress.getHostAddress());
         }
         else {
             Log.w(P.Tag, "onConnectionInfoAvailable info is null");
@@ -345,6 +354,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         Log.d(P.Tag, "==Peers Available");
         List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
         peers.addAll(wifiP2pDeviceList.getDeviceList());
+        Log.d(P.Tag, "peers.size(): " + peers.size());
         for (WifiP2pDevice device: peers) {
             Log.d(P.Tag, "deviceName: " + device.deviceName);
             Log.d(P.Tag, "deviceAddress: " + device.deviceAddress);
@@ -356,16 +366,24 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 connect(config);
                 P.setStatus(P.Status.Connecting);
             }
+
         }
     }
 
-    private void sendTestFile() {
+    private void sendTestFile(String hostAddress) {
 
         Log.d(P.Tag, "sendTestFile()");
-        File testFile = new File("file://android_asset/test.jpg");
-        List<File> l = new ArrayList<File>();
-        l.add(testFile);
-        new FilesSendAsyncTask(getApplicationContext(), l, P.getHostAdress(), 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        try {
+            InputStream stream = getApplicationContext().getAssets().open("test.jpg");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            List<File> l = new ArrayList<File>();
+            //l.add(testFile);
+            new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } catch (IOException e) {
+            Log.e(P.Tag, e.getMessage(), e);
+        }
+
     }
 
 
@@ -756,12 +774,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     file = new File(fileUri);
                     is = new FileInputStream(file);
 
+                    boolean isOK = copyFileOut(is, stream, fileUri, file.length());
+                    Log.i(P.TAG, "file: " + fileUri + " is sent: " + isOK);
+
                 } catch (FileNotFoundException e) {
-                    Log.d(P.TAG, e.toString());
+                    Log.e(P.TAG, e.toString());
                 }
 
-                boolean isOK = copyFileOut(is, stream, fileUri, file.length());
-                Log.i(P.TAG, "file: " + fileUri + " is sent: " + isOK);
+
 
 
 
@@ -839,7 +859,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             if (fileIndex < files.size() - 1) {
                 fileIndex++;
                 Log.d(P.TAG, "Starting FilesSendAsyncTask with fileIndex: " + fileIndex);
-                new FilesSendAsyncTask(getApplicationContext(), files, P.getHostAdress(), 8988).execute();
+                new FilesSendAsyncTask(getApplicationContext(), files, host, 8988).execute();
             }
             else {
                 Log.d(P.TAG, "reseting fileIndex for the next iteration");

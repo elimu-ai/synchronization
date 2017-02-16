@@ -1,6 +1,9 @@
 package org.literacyapp.synchronization;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +21,7 @@ public class Main3Activity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkForPermissionsMAndAbove();
         setContentView(R.layout.activity_main3);
         Intent intent = new Intent(getApplicationContext(), WiFiDirectService.class);
         startService(intent);
@@ -69,12 +73,12 @@ public class Main3Activity extends AppCompatActivity {
         final TextView statusText = ((TextView) findViewById(R.id.statusTextView));
         new Thread() {
             public void run() {
-                Log.d(P.Tag,"Update UI started");
+                Log.d(P.Tag,"Status Update started");
                 try {
                     while (true) {
 
                         if (isUIUpdateRunning == false) {
-                            Log.d(P.Tag, "isRun is false, breaking");
+                            Log.d(P.Tag, "Stopping status update.");
                             break;
                         }
                         try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
@@ -88,5 +92,40 @@ public class Main3Activity extends AppCompatActivity {
                 }
             }
         }.start();
+    }
+
+    protected void checkForPermissionsMAndAbove() {
+        Log.i(P.Tag, "checkForPermissions() called");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Here, thisActivity is the current activity
+            if (checkSelfPermission(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED
+                    ||
+                    checkSelfPermission(
+                            Manifest.permission.ACCESS_WIFI_STATE)
+                            != PackageManager.PERMISSION_GRANTED
+
+                    ) {
+
+
+                // No explanation needed, we can request the permission.
+                requestPermissions(
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.ACCESS_WIFI_STATE,
+                                Manifest.permission.WAKE_LOCK,
+                                Manifest.permission.CHANGE_WIFI_STATE,
+                        },
+                        0);
+
+
+
+            }
+            // permission already granted
+            else {
+                Log.i(P.Tag, "permission already granted");
+            }
+        }
+
     }
 }
