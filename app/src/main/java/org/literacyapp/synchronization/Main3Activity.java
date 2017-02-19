@@ -22,6 +22,7 @@ public class Main3Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkForPermissionsMAndAbove();
+        P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(this, P.testFileName);
         setContentView(R.layout.activity_main3);
         Intent intent = new Intent(getApplicationContext(), WiFiDirectService.class);
         startService(intent);

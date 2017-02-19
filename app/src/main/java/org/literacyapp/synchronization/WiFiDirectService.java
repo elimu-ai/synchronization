@@ -310,7 +310,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     @Override
     public void connect(WifiP2pConfig config) {
         Log.i(P.Tag, "Connect(WifiP2pConfig config) called.");
-        Toast.makeText(this,"Connecting..." ,Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this,"Connecting..." ,Toast.LENGTH_SHORT).show();
         P.setStatus(P.Status.Connecting);
         manager.connect(channel, config, new WifiP2pManager.ActionListener() {
 
@@ -371,19 +371,12 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     }
 
     private void sendTestFile(String hostAddress) {
-
         Log.d(P.Tag, "sendTestFile()");
-
-        try {
-            InputStream stream = getApplicationContext().getAssets().open("test.jpg");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-            List<File> l = new ArrayList<File>();
-            //l.add(testFile);
-            new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } catch (IOException e) {
-            Log.e(P.Tag, e.getMessage(), e);
-        }
-
+        String testFilePath  = getApplicationContext().getFilesDir().getAbsolutePath() + "/test_files/" + P.testFileName;
+        File testFile = new File(testFilePath);
+        List<File> l = new ArrayList<File>();
+        l.add(testFile);
+        new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 
@@ -674,6 +667,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             this.files = files;
             this.host = host;
             this.port = port;
+            Log.i(P.Tag, "FilesSendAsyncTask: " + " sending files: " + files.size());
         }
 
 
@@ -754,6 +748,9 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         @Override
         protected Integer doInBackground(Void... params) {
             Log.i(P.TAG, "FilesSendAsyncTask doInBackground started");
+            if (files == null || files.size() < 1) {
+                Log.e(P.Tag, "files to send are empty FilesSendAsyncTask ending");
+            }
             try {
                 File f = (File)files.get(fileIndex);
                 String fileUri = f.getAbsolutePath();
