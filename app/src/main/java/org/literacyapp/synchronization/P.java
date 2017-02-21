@@ -22,6 +22,9 @@ public class P {
     public static final String Tag = "syncl";
     public static final String TAG = "syncl";
     public static final String testFileName = "test.jpg";
+    public static final String SENDER = "sender";
+    public static final String RECEIVER = "receiver";
+
 
     public static final String DEFAULT_OUTPUT_FOLDER_NAME = "wifi_direct_files";
     private static Status mStatus = Status.Idle;
@@ -66,13 +69,21 @@ public class P {
         return f.mkdirs();
     }
 
+    public static String getLocalTestFilePath(Context ctx) {
+        String destinationFolderPath = ctx.getFilesDir().getAbsolutePath() + "/test_files/";
+        String model = android.os.Build.MODEL.toLowerCase().replaceAll(" ", "_").trim();
+        String destinationFilePath = destinationFolderPath + model + "_" + testFileName;
+        return destinationFilePath;
+    }
 
-    public static void copyTestFileFromAssetsToLocalAppFolderIfNeeded(Activity act, String assetsFileName) {
-        String destinationFolderPath = act.getApplicationContext().getFilesDir().getAbsolutePath() + "/test_files/";
-        String destinationFilePath = destinationFolderPath + assetsFileName;
+
+    public static void copyTestFileFromAssetsToLocalAppFolderIfNeeded(Context ctx) {
+        String destinationFolderPath = ctx.getFilesDir().getAbsolutePath() + "/test_files/";
         File destFile = null;
         try {
-            destFile = new File(destinationFilePath);
+            String localTestFilePath = getLocalTestFilePath(ctx);
+            Log.d(P.Tag, "localTestFilePath: " + localTestFilePath);
+            destFile = new File(localTestFilePath);
             if (!destFile.exists()) {
                 File destFolder = new File(destinationFolderPath);
                 boolean isFolderCreated = false;
@@ -82,7 +93,7 @@ public class P {
                 }
                 if (isFolderCreated || destFolder.exists()) {
                     Log.i(P.TAG, "Adding test file at " + destFile.getAbsolutePath());
-                    InputStream is = act.getAssets().open(assetsFileName);
+                    InputStream is = ctx.getAssets().open(testFileName);
                     BufferedOutputStream o = null;
                     try {
                         byte[] buff = new byte[10000];

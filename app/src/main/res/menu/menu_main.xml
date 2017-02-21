@@ -5,7 +5,10 @@
     <item android:id="@+id/action_force_stop" android:title="@string/force_stop"
         app:showAsAction="never" />
 
-    <item android:id="@+id/action_start" android:title="@string/start"
+    <item android:id="@+id/action_start_sender" android:title="@string/start_sender"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_start_receiver" android:title="@string/start_receiver"
         app:showAsAction="never" />
 
 </menu>

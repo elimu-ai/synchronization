@@ -22,9 +22,10 @@ public class Main3Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkForPermissionsMAndAbove();
-        P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(this, P.testFileName);
+        P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main3);
         Intent intent = new Intent(getApplicationContext(), WiFiDirectService.class);
+
         startService(intent);
 
     }
@@ -60,10 +61,18 @@ public class Main3Activity extends AppCompatActivity {
                 stopService(i1);
                 return true;
 
-            case R.id.action_start:
-                Log.i(P.Tag, "action_start selected");
+            case R.id.action_start_sender:
+                Log.i(P.Tag, "action_start sender selected");
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                i2.putExtra("sender_receiver", "sender");
                 startService(i2);
+                return true;
+
+            case R.id.action_start_receiver:
+                Log.i(P.Tag, "action_start receiver selected");
+                Intent i3 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                i3.putExtra("sender_receiver", "receiver");
+                startService(i3);
                 return true;
 
         }
