@@ -3,6 +3,7 @@ package org.literacyapp.synchronization;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -24,6 +25,7 @@ public class P {
     public static final String testFileName = "test.jpg";
     public static final String SENDER = "sender";
     public static final String RECEIVER = "receiver";
+    public static final int PORT = 8988;
 
 
     public static final String DEFAULT_OUTPUT_FOLDER_NAME = "wifi_direct_files";
@@ -128,6 +130,17 @@ public class P {
         } catch (IOException e) {
             Log.e(P.TAG,"IOException: " +  e.getMessage());
         }
+    }
+
+
+    public static String getVersionName(Context ctx) {
+        String versionName = "";
+        try {
+            versionName = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.w(P.Tag, "No version code found, returning -1");
+        }
+        return versionName;
     }
 
 

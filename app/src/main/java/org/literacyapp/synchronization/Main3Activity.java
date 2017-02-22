@@ -1,9 +1,11 @@
 package org.literacyapp.synchronization;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -75,8 +77,30 @@ public class Main3Activity extends AppCompatActivity {
                 startService(i3);
                 return true;
 
+            case R.id.action_about:
+                Log.i(P.Tag, "action_about");
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.about)).
+                        setMessage(getAboutText()).
+                        setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User clicked OK button
+                            }
+                        });
+
+                AlertDialog about  = builder.create();
+                about.show();
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private String getAboutText() {
+        StringBuffer b = new StringBuffer();
+        b.append(getString(R.string.created_by) + "\n" + getString(R.string.version) + ":  ");
+        b.append(P.getVersionName(getApplicationContext()) + "\n");
+        return b.toString();
     }
 
     private void updateUI () {

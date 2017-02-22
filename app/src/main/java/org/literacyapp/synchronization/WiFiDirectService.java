@@ -438,7 +438,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         File testFile = new File(testFilePath);
         List<File> l = new ArrayList<File>();
         l.add(testFile);
-        new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, 8988).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, P.PORT).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 
@@ -570,8 +570,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             try {
 
                 if (serverSocket == null) {
-                    serverSocket = new ServerSocket(8988);
-                    Log.d(P.TAG, "Server: Socket opened (8988)");
+                    serverSocket = new ServerSocket(P.PORT);
+                    Log.d(P.TAG, "Server: Socket opened: " + P.PORT);
                 }
                 // blocking till a client is connecting
                 client = serverSocket.accept();
@@ -921,7 +921,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             if (fileIndex < files.size() - 1) {
                 fileIndex++;
                 Log.d(P.TAG, "Starting FilesSendAsyncTask with fileIndex: " + fileIndex);
-                new FilesSendAsyncTask(getApplicationContext(), files, host, 8988).execute();
+                new FilesSendAsyncTask(getApplicationContext(), files, host, P.PORT).execute();
             }
             else {
                 Log.d(P.TAG, "reseting fileIndex for the next iteration");
