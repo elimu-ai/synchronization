@@ -29,7 +29,7 @@ public class P {
     public static final String DEFAULT_OUTPUT_FOLDER_NAME = "wifi_direct_files";
     private static Status mStatus = Status.Idle;
 
-    public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected }
+    public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected, FileSent, FileReceived }
 
     public static void setStatus(Status status) {
         mStatus = status;

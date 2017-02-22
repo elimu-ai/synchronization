@@ -78,12 +78,24 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     public void onDestroy() {
         super.onDestroy();
         Log.i(P.Tag, "WiFiDirectService onDestroy called");
+        stop();
+
+    }
+
+    private void stop() {
         isKillService = true;
         P.setStatus(P.Status.Idle);
         if (fileServerAsyncTask != null)
             fileServerAsyncTask.close();
+        cleanState();
         if (receiver != null)
             unregisterReceiver(receiver);
+    }
+
+    private void restart() {
+        stop();
+        try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); }
+        start();
     }
 
     @Override
@@ -117,27 +129,36 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+        start();
+
+        return START_STICKY;
+    }
+
+    private void start() {
+        isKillService = false;
         manager = (WifiP2pManager) getSystemService(WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
 
         receiver = new WiFiDirectBroadcastReceiver(manager, channel, this);
         registerReceiver(receiver, intentFilter);
 
-        final Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        final Timer discoverTimer = new Timer();
+        discoverTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (isKillService) {
-                    Log.d(P.Tag, "service is destroyed, stopping timer");
-                    timer.cancel();
+                    Log.d(P.Tag, "stopping discoverTimer (serviceKill)");
+                    discoverTimer.cancel();
                 }
                 // if status is FoundPeers or more stop discovery.
                 if  (P.getStatus().ordinal() <= 1)
                     new DiscoverAsyncTask().execute();
-                else
-                    timer.cancel();
+                else {
+                    Log.d(P.Tag, "stopping discoverTimer status is FoundPeers or more");
+                    discoverTimer.cancel();
+                }
             }
-        // run every 10 secs (after 1 secs)
+            // run every 10 secs (after 1 secs)
         }, 1000, 10000);
 
 
@@ -146,7 +167,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             @Override
             public void run() {
                 if (isKillService) {
-                    Log.d(P.Tag, "service is destroyed, stopping timer");
+                    Log.d(P.Tag, "stopping connectingWdTimer(isKillService)");
                     connectingWdTimer.cancel();
                 }
                 // if status is FoundPeers or more stop discovery.
@@ -166,8 +187,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             }
             // run every 10 secs (after 1 secs)
         }, 2000, 2000);
-
-        return START_STICKY;
     }
 
     private class DiscoverAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -382,6 +401,12 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
         peers.addAll(wifiP2pDeviceList.getDeviceList());
         Log.d(P.Tag, "peers.size(): " + peers.size());
+
+        if (peers.size() == 0) {
+            Log.w(P.Tag, "peers size is 0, calling restart...");
+            restart();
+        }
+
         for (WifiP2pDevice device: peers) {
             Log.d(P.Tag, "deviceName: " + device.deviceName);
             Log.d(P.Tag, "deviceAddress: " + device.deviceAddress);
@@ -592,6 +617,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         File f2 = new File(fullPath);
                         boolean isRenameOK = f.renameTo(f2);
                         Log.d(P.TAG, "isRenameOK: " + isRenameOK);
+                        P.setStatus(P.Status.FileReceived);
                         return f2.getAbsolutePath();
                     }
                     else {
@@ -864,6 +890,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                                 Log.e(P.TAG, e.getMessage());
                             }
                         }
+
+                        P.setStatus(P.Status.FileSent);
                     } catch (IOException e1) {
                         Log.e(P.Tag, "failed to send finish msg: " + e1.getMessage());
                     }
@@ -925,6 +953,32 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             wakeLock.acquire();
         }
 
+    }
+
+
+    private void cleanState() {
+        if (manager != null) {
+            Log.i(P.Tag, "manager.removeGroup...");
+            manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onFailure(int reasonCode) {
+                    Log.d(P.TAG, "manager.removeGroup failed, Reason( BUSY-2, Error-0, P2P_UNSUPPORTED-1) :" + reasonCode);
+                }
+
+                @Override
+                public void onSuccess() {
+                    Log.d(P.TAG, "managerBase.removeGroup : OK" );
+                }
+
+            });
+        }
+
+        if (peers != null)
+            peers.clear();
+        else
+            Log.i(P.Tag, "peers are null");
+
+        //new GroupDeleteHelper(getApplicationContext()).deleteGroups();
     }
 
 
