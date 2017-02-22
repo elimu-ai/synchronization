@@ -512,6 +512,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         }
                         else {
                             folderFromSend = null;
+
                             ret = new String (buf).trim();
                             if (ret.equals(FINISH_STR)) {
                                 Log.i(P.Tag, "=== got finish str on the reciever===");
