@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Synchronization (LiteracyApp)</string>
     <string name="force_stop">Force Stop</string>
+    <string name="start">Start</string>
     <string name="start_sender">Start as sender</string>
     <string name="start_receiver">Start as receiver</string>
     <string name="about">About</string>

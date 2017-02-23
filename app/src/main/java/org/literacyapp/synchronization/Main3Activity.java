@@ -63,6 +63,13 @@ public class Main3Activity extends AppCompatActivity {
                 stopService(i1);
                 return true;
 
+            case R.id.action_start:
+                Log.i(P.Tag, "action_start selected");
+                Intent i4 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                startService(i4);
+                return true;
+
+            /*
             case R.id.action_start_sender:
                 Log.i(P.Tag, "action_start sender selected");
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
@@ -76,6 +83,7 @@ public class Main3Activity extends AppCompatActivity {
                 i3.putExtra("sender_receiver", "receiver");
                 startService(i3);
                 return true;
+                */
 
             case R.id.action_about:
                 Log.i(P.Tag, "action_about");

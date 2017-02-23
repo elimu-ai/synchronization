@@ -60,7 +60,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private File folder2send = null;
     private final int GOT_RECIEVER_HOST = 345;
     private static final String FINISH_STR = "###finish###";
-    private String senderReceiverType = null;
+
 
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
@@ -108,6 +108,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(P.Tag, "WiFiDirectService start sticky");
 
+/*
         if (intent.getExtras() != null)
             senderReceiverType = intent.getExtras().getString("sender_receiver");
         else {
@@ -122,6 +123,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             }
             Log.i(P.Tag, "senderReceiverType randomly set to: " + senderReceiverType);
         }
+        */
 
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -311,6 +313,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     P.setStatus(P.Status.Connected);
 
                     manager.requestConnectionInfo(channel, WiFiDirectService.this);
+
+                    /*
                     if (senderReceiverType.equals(P.RECEIVER)) {
                         Log.i(P.TAG, "FileServerAsyncTask started listening...");
                         fileServerAsyncTask = new FileServerAsyncTask();
@@ -319,6 +323,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     else {
                         Log.i(P.Tag, "senderReceiverType is sender, not starting receiver");
                     }
+                    */
 
                 }
 
@@ -383,12 +388,20 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         if (info != null && info.groupOwnerAddress != null) {
             this.info = info;
-
             Log.i(P.Tag, "info.groupOwnerAddress.getHostAddress(): " + info.groupOwnerAddress.getHostAddress());
-            if (senderReceiverType.equals(P.SENDER))
+
+            Log.i(P.Tag, "info.isGroupOwner: " + info.isGroupOwner);
+            if (info.groupFormed && info.isGroupOwner) {
+                Log.i(P.TAG, "FileServerAsyncTask started listening...");
+                fileServerAsyncTask = new FileServerAsyncTask();
+                fileServerAsyncTask.execute();
+            }
+            else if(info.groupFormed) {
                 sendTestFile(info.groupOwnerAddress.getHostAddress());
-            else
-                Log.i(P.Tag, "senderReceiverType is reciever not sending test file");
+            }
+            else {
+                Log.w(P.TAG, "Group not formed yet...");
+            }
         }
         else {
             Log.w(P.Tag, "onConnectionInfoAvailable info is null");
@@ -416,6 +429,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 config.deviceAddress = device.deviceAddress;
                 config.wps.setup = WpsInfo.PBC;
 
+                /*
                 if (senderReceiverType.equals(P.SENDER)) {
                     Log.i(P.TAG, "not Receiver, config.groupOwnerIntent 0");
                     config.groupOwnerIntent = 0;
@@ -424,6 +438,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     Log.i(P.TAG, "setReceiver, config.groupOwnerIntent 15 ");
                     config.groupOwnerIntent = 15;
                 }
+                */
 
                 connect(config);
                 P.setStatus(P.Status.Connecting);
@@ -515,7 +530,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                             ret = new String (buf).trim();
                             if (ret.equals(FINISH_STR)) {
-                                Log.i(P.Tag, "=== got finish str on the reciever===");
+                                Log.i(P.Tag, "=== got finish str on the receiver===");
                                 ret = null;
                                 isFinished = true;
                                 break;
@@ -895,6 +910,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         P.setStatus(P.Status.FileSent);
                     } catch (IOException e1) {
                         Log.e(P.Tag, "failed to send finish msg: " + e1.getMessage());
+                        restart();
                     }
 
                 }
