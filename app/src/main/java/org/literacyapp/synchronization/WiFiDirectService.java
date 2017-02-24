@@ -113,20 +113,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         if (intent.getExtras() != null)
             senderReceiverType = intent.getExtras().getString("sender_receiver");
-        else {
-            Random rand = new Random();
-            int randInt = rand.nextInt(2);
-            if (randInt == 0) {
-                senderReceiverType = "sender";
-
-            }
-            else {
-                senderReceiverType = "receiver";
-            }
-            Log.i(P.Tag, "senderReceiverType randomly set to: " + senderReceiverType);
-        }
-
-
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
