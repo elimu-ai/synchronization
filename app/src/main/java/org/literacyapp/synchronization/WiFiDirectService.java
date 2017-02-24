@@ -60,6 +60,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private File folder2send = null;
     private final int GOT_RECIEVER_HOST = 345;
     private static final String FINISH_STR = "###finish###";
+    private String senderReceiverType = null;
 
 
 
@@ -83,6 +84,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     }
 
     private void stop() {
+        senderReceiverType = null;
         isKillService = true;
         P.setStatus(P.Status.Idle);
         if (fileServerAsyncTask != null)
@@ -108,7 +110,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(P.Tag, "WiFiDirectService start sticky");
 
-/*
+
         if (intent.getExtras() != null)
             senderReceiverType = intent.getExtras().getString("sender_receiver");
         else {
@@ -123,7 +125,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             }
             Log.i(P.Tag, "senderReceiverType randomly set to: " + senderReceiverType);
         }
-        */
+
 
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -388,19 +390,32 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         if (info != null && info.groupOwnerAddress != null) {
             this.info = info;
+
             Log.i(P.Tag, "info.groupOwnerAddress.getHostAddress(): " + info.groupOwnerAddress.getHostAddress());
 
-            Log.i(P.Tag, "info.isGroupOwner: " + info.isGroupOwner);
-            if (info.groupFormed && info.isGroupOwner) {
-                Log.i(P.TAG, "FileServerAsyncTask started listening...");
-                fileServerAsyncTask = new FileServerAsyncTask();
-                fileServerAsyncTask.execute();
-            }
-            else if(info.groupFormed) {
-                sendTestFile(info.groupOwnerAddress.getHostAddress());
+            if (senderReceiverType != null) {
+
+                if (senderReceiverType.equals(P.SENDER)) {
+                    Log.i(P.Tag, "Forced as sender");
+                    sendTestFile(info.groupOwnerAddress.getHostAddress());
+                }
+                else {
+                    Log.i(P.TAG, "Forced as receiver, FileServerAsyncTask started listening...");
+                    fileServerAsyncTask = new FileServerAsyncTask();
+                    fileServerAsyncTask.execute();
+                }
             }
             else {
-                Log.w(P.TAG, "Group not formed yet...");
+                Log.i(P.Tag, "info.isGroupOwner: " + info.isGroupOwner);
+                if (info.groupFormed && info.isGroupOwner) {
+                    Log.i(P.TAG, "FileServerAsyncTask started listening...");
+                    fileServerAsyncTask = new FileServerAsyncTask();
+                    fileServerAsyncTask.execute();
+                } else if (info.groupFormed) {
+                    sendTestFile(info.groupOwnerAddress.getHostAddress());
+                } else {
+                    Log.w(P.TAG, "Group not formed yet...");
+                }
             }
         }
         else {
@@ -429,16 +444,16 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 config.deviceAddress = device.deviceAddress;
                 config.wps.setup = WpsInfo.PBC;
 
-                /*
-                if (senderReceiverType.equals(P.SENDER)) {
-                    Log.i(P.TAG, "not Receiver, config.groupOwnerIntent 0");
-                    config.groupOwnerIntent = 0;
+                if (senderReceiverType != null) {
+                    if (senderReceiverType.equals(P.SENDER)) {
+                        Log.i(P.TAG, "not Receiver, config.groupOwnerIntent 0");
+                        config.groupOwnerIntent = 0;
+                    } else {
+                        Log.i(P.TAG, "setReceiver, config.groupOwnerIntent 15 ");
+                        config.groupOwnerIntent = 15;
+                    }
                 }
-                else {
-                    Log.i(P.TAG, "setReceiver, config.groupOwnerIntent 15 ");
-                    config.groupOwnerIntent = 15;
-                }
-                */
+
 
                 connect(config);
                 P.setStatus(P.Status.Connecting);

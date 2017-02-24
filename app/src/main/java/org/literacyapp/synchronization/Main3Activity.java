@@ -26,10 +26,6 @@ public class Main3Activity extends AppCompatActivity {
         checkForPermissionsMAndAbove();
         P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main3);
-        Intent intent = new Intent(getApplicationContext(), WiFiDirectService.class);
-
-        startService(intent);
-
     }
 
     @Override
@@ -69,7 +65,7 @@ public class Main3Activity extends AppCompatActivity {
                 startService(i4);
                 return true;
 
-            /*
+
             case R.id.action_start_sender:
                 Log.i(P.Tag, "action_start sender selected");
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
@@ -83,7 +79,7 @@ public class Main3Activity extends AppCompatActivity {
                 i3.putExtra("sender_receiver", "receiver");
                 startService(i3);
                 return true;
-                */
+
 
             case R.id.action_about:
                 Log.i(P.Tag, "action_about");
