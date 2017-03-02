@@ -10,13 +10,17 @@ import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,11 +32,13 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class WiFiDirectService extends Service implements WifiP2pManager.ChannelListener, DeviceActionListener, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener {
+public class WiFiDirectServiceNCD extends Service implements WifiP2pManager.ChannelListener, DeviceActionListener, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener, WifiP2pManager.GroupInfoListener {
 
     private WifiP2pManager manager;
     private boolean isWifiP2pEnabled = true;
@@ -50,14 +56,17 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private String senderReceiverType = null;
     private List<WifiP2pDevice> peers = new ArrayList<>();
 
-
+    private boolean isCreateGroup = true;
+    private String networkName;
+    private String passPhrase;
+    private String hostAddress;
 
     public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
         this.isWifiP2pEnabled = isWifiP2pEnabled;
     }
 
 
-    public WiFiDirectService() {
+    public WiFiDirectServiceNCD() {
     }
 
     @Override
@@ -69,6 +78,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     }
 
     private void stop() {
+        //senderReceiverType = null;
         isKillService = true;
         P.setStatus(P.Status.Idle);
         if (fileServerAsyncTask != null)
@@ -76,7 +86,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         removeGroup();
         if (receiver != null)
             unregisterReceiver(receiver);
-
+        stopLocalServices();
     }
 
     private void restart() {
@@ -125,7 +135,17 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         registerReceiver(receiver, intentFilter);
 
 
+        if (senderReceiverType != null && isCreateGroup && senderReceiverType.equals(P.RECEIVER)) {
+            manager.createGroup(channel,new WifiP2pManager.ActionListener() {
+                public void onSuccess() {
+                    Log.d(P.Tag, "Creating Local Group");
+                }
 
+                public void onFailure(int reason) {
+                    Log.d(P.Tag,"Local Group failed, error code " + reason);
+                }
+            });
+        }
 
 
         final Timer discoverTimer = new Timer();
@@ -139,7 +159,10 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 // if status is FoundPeers or more stop discovery.
                 if  (P.getStatus().ordinal() <= 1) {
                     new DiscoverAsyncTask().execute();
-                 }
+                    if (senderReceiverType != null && isCreateGroup && senderReceiverType.equals(P.SENDER)) {
+                        discoverService();
+                    }
+                }
                 else {
                     Log.d(P.Tag, "stopping discoverTimer status is FoundPeers or more");
                     discoverTimer.cancel();
@@ -166,6 +189,9 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     connectingCounter = 0;
                     Log.d(P.Tag, "connectingCounter starting DiscoverAsyncTask");
                     new DiscoverAsyncTask().execute();
+                    if (senderReceiverType != null && isCreateGroup && senderReceiverType.equals(P.SENDER)) {
+                        discoverService();
+                    }
                 }
                 if (P.getStatus() == P.Status.Connected) {
                     Log.d(P.Tag, "connectingCounter: connectingWdTimer.cancel()");
@@ -176,7 +202,15 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         }, 2000, 2000);
     }
 
-
+    @Override
+    public void onGroupInfoAvailable(WifiP2pGroup group) {
+        if (networkName == null || networkName == "") {
+            Log.i(P.Tag, "group.getNetworkName(): " + group.getNetworkName() + " group.getPassphrase(): " + group.getPassphrase());
+            networkName = group.getNetworkName();
+            passPhrase = group.getPassphrase();
+            startLocalService("NI:" + group.getNetworkName() + ":" + group.getPassphrase() + ":" + hostAddress);
+        }
+    }
 
     private class DiscoverAsyncTask extends AsyncTask<Void, Void, Void> {
 
@@ -225,7 +259,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
          * @param wiFiDirectService service associated with the receiver
          */
         public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                                           WiFiDirectService wiFiDirectService) {
+                                           WiFiDirectServiceNCD wiFiDirectService) {
             super();
             this.manager = manager;
             this.channel = channel;
@@ -271,7 +305,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 // asynchronous call and the calling activity is notified with a
                 // callback on PeerListListener.onPeersAvailable()
                 if (manager != null) {
-                    manager.requestPeers(channel, WiFiDirectService.this);
+                    manager.requestPeers(channel, WiFiDirectServiceNCD.this);
                 }
 
 
@@ -292,7 +326,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     //Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG).show();
                     P.setStatus(P.Status.Connected);
 
-                    manager.requestConnectionInfo(channel, WiFiDirectService.this);
+                    manager.requestConnectionInfo(channel, WiFiDirectServiceNCD.this);
 
                     /*
                     if (senderReceiverType.equals(P.RECEIVER)) {
@@ -376,6 +410,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 }
                 else {
                     if (info.groupFormed && info.isGroupOwner) {
+                        hostAddress = info.groupOwnerAddress.getHostAddress();
+                        manager.requestGroupInfo(channel,this);
                         Log.i(P.TAG, "Forced as receiver, FileServerAsyncTask started listening...");
                         fileServerAsyncTask = new FileServerAsyncTask();
                         fileServerAsyncTask.execute();
@@ -990,8 +1026,93 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
 
 
+    private void startLocalService(String instance) {
 
+        Map<String, String> record = new HashMap<String, String>();
+        record.put("available", "visible");
+        record.put("passPhrase", passPhrase);
+        record.put("hostAddress", hostAddress);
 
+        WifiP2pDnsSdServiceInfo service = WifiP2pDnsSdServiceInfo.newInstance( instance, "_wdm_p2p._tcp", record);
+
+        Log.d(P.Tag, "Add local service :" + instance);
+        manager.addLocalService(channel, service, new WifiP2pManager.ActionListener() {
+            public void onSuccess() {
+                Log.d(P.Tag, "Added local service");
+            }
+
+            public void onFailure(int reason) {
+                Log.d(P.Tag, "Adding local service failed, error code " + reason);
+            }
+        });
+    }
+
+    private void stopLocalServices() {
+        networkName = "";
+        passPhrase = "";
+
+        manager.clearLocalServices(channel, new WifiP2pManager.ActionListener() {
+            public void onSuccess() {
+                Log.d(P.Tag, "Cleared local services");
+            }
+
+            public void onFailure(int reason) {
+                Log.d(P.Tag, "Clearing local services failed, error code " + reason);
+
+            }
+        });
+    }
+
+    private void discoverService() {
+
+        WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
+            @Override
+            public void onDnsSdServiceAvailable(String instanceName, String registrationType,
+                                                WifiP2pDevice resourceType) {
+                Log.d(P.TAG, "onDnsSdServiceAvailable: " + instanceName);
+            }
+        };
+
+        WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
+            @Override
+            public void onDnsSdTxtRecordAvailable(
+                    String fullDomain, Map record, WifiP2pDevice device) {
+                Log.d(P.TAG, "DnsSdTxtRecord available -" + record.toString());
+                Log.d(P.TAG, "record.get(passPhrase): "  + record.get("passPhrase"));
+            }
+        };
+
+        manager.setDnsSdResponseListeners(channel, servListener, txtListener);
+
+        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        manager.addServiceRequest(channel,
+                serviceRequest,
+                new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(P.Tag, "WifiP2pDnsSdServiceRequest onSuccess");
+                    }
+
+                    @Override
+                    public void onFailure(int code) {
+                        Log.d(P.Tag, "WifiP2pDnsSdServiceRequest onFailure: " + code);
+                    }
+                });
+
+        manager.discoverServices(channel,
+            new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.d(P.Tag, "manager.discoverServices onSuccess");
+                }
+
+                @Override
+                public void onFailure(int code) {
+                    Log.d(P.Tag, "manager.discoverServices onSuccess");
+                }
+            });
+
+    }
 
 
 
