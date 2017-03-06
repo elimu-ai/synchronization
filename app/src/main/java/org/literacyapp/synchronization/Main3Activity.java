@@ -25,6 +25,7 @@ public class Main3Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         checkForPermissionsMAndAbove();
         P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
+        P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main3);
     }
 

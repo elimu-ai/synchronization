@@ -78,7 +78,7 @@ public class WiFiDirectServiceNCD extends Service implements WifiP2pManager.Chan
     }
 
     private void stop() {
-        //senderReceiverType = null;
+
         isKillService = true;
         P.setStatus(P.Status.Idle);
         if (fileServerAsyncTask != null)

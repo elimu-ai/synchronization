@@ -78,6 +78,12 @@ public class P {
         return destinationFilePath;
     }
 
+    public static String getLocalTestFileName(Context ctx) {
+        String model = android.os.Build.MODEL.toLowerCase().replaceAll(" ", "_").trim();
+        String destinationFilePath =  model + "_" + testFileName;
+        return destinationFilePath;
+    }
+
 
     public static void copyTestFileFromAssetsToLocalAppFolderIfNeeded(Context ctx) {
         String destinationFolderPath = ctx.getFilesDir().getAbsolutePath() + "/test_files/";
@@ -108,6 +114,67 @@ public class P {
                     }
                     catch (Exception e) {
                         Log.w(P.TAG, "Failed copying: " + destFile.getAbsolutePath());
+                    }
+                    finally {
+                        is.close();
+                        if (o != null) o.close();
+
+                    }
+                }
+                else {
+                    Log.w(P.TAG, "Test folder was not created.");
+                }
+
+            }
+            else {
+                Log.d(P.TAG, "Test file already exists, not copying test file.");
+
+            }
+
+        } catch (FileNotFoundException e) {
+            Log.e(P.TAG, "FileNotFoundException: " + e.getMessage(), e);
+        } catch (IOException e) {
+            Log.e(P.TAG,"IOException: " +  e.getMessage());
+        }
+    }
+
+
+    public static void createTestFolderIfNeeded(Context ctx) {
+        String destinationFolderPath1 = ctx.getFilesDir().getAbsolutePath() + "/test_files/l1/";
+        String destinationFolderPath2 = ctx.getFilesDir().getAbsolutePath() + "/test_files/l1/l2/";
+        File testFile = null;
+        try {
+            String localTestFilePath = destinationFolderPath2 + getLocalTestFileName(ctx);
+            Log.d(P.Tag, "localTestFilePath: " + localTestFilePath);
+            testFile = new File(localTestFilePath);
+            if (!testFile.exists()) {
+                File destFolder = new File(destinationFolderPath1);
+                boolean isFolder1Created = false;
+                boolean isFolder2Created = false;
+                if (!destFolder.exists()) {
+                    isFolder1Created = P.createFolder(destinationFolderPath1);
+                    Log.i(P.TAG, destinationFolderPath1 + " created? " + isFolder1Created);
+                    if (isFolder1Created) {
+                        isFolder2Created = P.createFolder(destinationFolderPath2);
+                        Log.i(P.TAG, destinationFolderPath2 + " created? " + isFolder2Created);
+                    }
+
+                }
+                if (isFolder2Created ) {
+                    Log.i(P.TAG, "Adding test file at " + testFile.getAbsolutePath());
+                    InputStream is = ctx.getAssets().open(testFileName);
+                    BufferedOutputStream o = null;
+                    try {
+                        byte[] buff = new byte[10000];
+                        int read = -1;
+                        o = new BufferedOutputStream(new FileOutputStream(testFile), 10000);
+                        while ((read = is.read(buff)) > -1) {
+                            o.write(buff, 0, read);
+                        }
+                        Log.i(P.TAG, "Copy " + testFile.getAbsolutePath() + " from assets to app folder finished successfully");
+                    }
+                    catch (Exception e) {
+                        Log.w(P.TAG, "Failed copying: " + testFile.getAbsolutePath());
                     }
                     finally {
                         is.close();
