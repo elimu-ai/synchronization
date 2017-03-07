@@ -124,10 +124,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         receiver = new WiFiDirectBroadcastReceiver(manager, channel, this);
         registerReceiver(receiver, intentFilter);
 
-
-
-
-
         final Timer discoverTimer = new Timer();
         discoverTimer.schedule(new TimerTask() {
             @Override
@@ -372,7 +368,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                 if (senderReceiverType.equals(P.SENDER)) {
                     Log.i(P.Tag, "Forced as sender");
-                    sendTestFile(info.groupOwnerAddress.getHostAddress());
+                    //sendTestFile(info.groupOwnerAddress.getHostAddress());
+                    sendTestFolder(info.groupOwnerAddress.getHostAddress());
                 }
                 else {
                     if (info.groupFormed && info.isGroupOwner) {
@@ -446,6 +443,16 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         new FilesSendAsyncTask(getApplicationContext(), l, hostAddress, P.PORT).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
+    private void sendTestFolder(String hostAddress) {
+        String testFolderPath = P.getTestFolderPath(getApplicationContext());
+        Log.d(P.Tag, "sendTestFolder(): " + testFolderPath);
+        File testFolder = new File(testFolderPath);
+        new FilesSendAsyncTask(getApplicationContext(), testFolder, hostAddress, P.PORT).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+    }
+
+
+
 
     public class FileServerAsyncTask extends AsyncTask<Void, Integer, String> {
         PowerManager.WakeLock wakeLock = null;
@@ -454,10 +461,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         boolean isCanceled = false;
         boolean isFinished = false;
         boolean isEnabled = true;
-
-        public void setEnabled(boolean isEnabled) {
-            this.isEnabled = isEnabled;
-        }
 
         public void close() {
             isEnabled = false;
@@ -557,9 +560,9 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             String sentFilePathS = sentFilePath.replaceAll("[()!?=<>@]","");
 
             String[] strs = sentFilePathS.split(folderNameS);
-            Log.d(P.TAG, strs[0] + " " + strs[1]);
+            //Log.d(P.TAG, strs[0] + " " + strs[1]);
             String path1 = folderNameS + strs[1].substring(0, strs[1].lastIndexOf("/"));
-            Log.d(P.TAG, path1);
+            //Log.d(P.TAG, path1);
             String newFolderPath = outputFolder + "/" + path1;
             Log.d(P.TAG, "newFolderPath: " + newFolderPath);
             boolean isDirCreated = new File(newFolderPath).mkdirs();
@@ -667,10 +670,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         }
 
-        /*
-         * (non-Javadoc)
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
+
         @Override
         protected void onPostExecute(String result) {
 
@@ -692,6 +692,13 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             if (!isFinished) {
                 try {
                     Log.d(P.TAG, "onPostExecute starting FileServerAsyncTask");
+                    if (isEnabled) {
+                        fileServerAsyncTask = new FileServerAsyncTask(serverSocket);
+                        fileServerAsyncTask.execute();
+                    }
+                    else {
+                        Log.i(P.TAG, "Not starting FileServerAsyncTask onPostExecute service is not enabled");
+                    }
 
                 } catch (Exception e) {
                     Log.w(P.TAG, e.getMessage(), e);
@@ -846,10 +853,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 } catch (FileNotFoundException e) {
                     Log.e(P.TAG, e.toString());
                 }
-
-
-
-
 
             } catch (IOException e) {
                 Log.e(P.TAG, e.getMessage());

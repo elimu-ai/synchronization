@@ -1,6 +1,5 @@
 package org.literacyapp.synchronization;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -27,6 +26,9 @@ public class P {
     public static final String RECEIVER = "receiver";
     public static final int PORT = 8988;
 
+    public static final String TEST_SUB_FOLDER1 = "/test_files/l1/";
+    public static final String TEST_SUB_FOLDER2 = "/test_files/l1/l2/";
+    public static final String TEST_FOLDER_NAME = "/test_files/";
 
     public static final String DEFAULT_OUTPUT_FOLDER_NAME = "wifi_direct_files";
     private static Status mStatus = Status.Idle;
@@ -78,6 +80,11 @@ public class P {
         return destinationFilePath;
     }
 
+    public static String getTestFolderPath(Context ctx) {
+        String testFolderPath = ctx.getFilesDir().getAbsolutePath() + TEST_FOLDER_NAME;
+        return testFolderPath;
+    }
+
     public static String getLocalTestFileName(Context ctx) {
         String model = android.os.Build.MODEL.toLowerCase().replaceAll(" ", "_").trim();
         String destinationFilePath =  model + "_" + testFileName;
@@ -86,7 +93,7 @@ public class P {
 
 
     public static void copyTestFileFromAssetsToLocalAppFolderIfNeeded(Context ctx) {
-        String destinationFolderPath = ctx.getFilesDir().getAbsolutePath() + "/test_files/";
+        String destinationFolderPath = ctx.getFilesDir().getAbsolutePath() + TEST_FOLDER_NAME;
         File destFile = null;
         try {
             String localTestFilePath = getLocalTestFilePath(ctx);
@@ -139,9 +146,10 @@ public class P {
     }
 
 
+
     public static void createTestFolderIfNeeded(Context ctx) {
-        String destinationFolderPath1 = ctx.getFilesDir().getAbsolutePath() + "/test_files/l1/";
-        String destinationFolderPath2 = ctx.getFilesDir().getAbsolutePath() + "/test_files/l1/l2/";
+        String destinationFolderPath1 = ctx.getFilesDir().getAbsolutePath() + TEST_SUB_FOLDER1;
+        String destinationFolderPath2 = ctx.getFilesDir().getAbsolutePath() + TEST_SUB_FOLDER2;
         File testFile = null;
         try {
             String localTestFilePath = destinationFolderPath2 + getLocalTestFileName(ctx);
@@ -188,7 +196,7 @@ public class P {
 
             }
             else {
-                Log.d(P.TAG, "Test file already exists, not copying test file.");
+                Log.d(P.TAG, "Test Folder already exists.");
 
             }
 
