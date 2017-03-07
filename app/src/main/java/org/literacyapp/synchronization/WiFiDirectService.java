@@ -626,7 +626,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         File f2 = new File(fullPath);
                         boolean isRenameOK = f.renameTo(f2);
                         Log.d(P.TAG, "isRenameOK: " + isRenameOK);
-                        P.setStatus(P.Status.FileReceived);
+                        //P.setStatus(P.Status.FileReceived);
                         return f2.getAbsolutePath();
                     }
                     else {
@@ -644,6 +644,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 }
                 else {
                     Log.i(P.Tag, "Got finished message from sender");
+                    P.setStatus(P.Status.ReceivedOK);
                     return null;
                 }
             } catch (IOException e) {
@@ -900,7 +901,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                             }
                         }
 
-                        P.setStatus(P.Status.FileSent);
+                        P.setStatus(P.Status.SentOK);
                     } catch (IOException e1) {
                         Log.e(P.Tag, "failed to send finish msg: " + e1.getMessage());
                         restart();
