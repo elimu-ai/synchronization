@@ -8,6 +8,9 @@
     <item android:id="@+id/action_force_stop" android:title="@string/force_stop"
         app:showAsAction="never" />
 
+    <item android:id="@+id/action_delete_groups" android:title="@string/delete_groups"
+    app:showAsAction="never" />
+
     <item android:id="@+id/action_start_sender" android:title="@string/start_sender"
         app:showAsAction="never" />
 

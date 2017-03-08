@@ -60,6 +60,12 @@ public class Main3Activity extends AppCompatActivity {
                 stopService(i1);
                 return true;
 
+            case R.id.action_delete_groups:
+                Log.i(P.Tag, "action_delete_groups selected");
+                GroupDeleteHelper gh = new GroupDeleteHelper(getApplicationContext());
+                gh.deleteGroups();
+                return true;
+
             case R.id.action_start:
                 Log.i(P.Tag, "action_start selected");
                 Intent i4 = new Intent(getApplicationContext(), WiFiDirectService.class);

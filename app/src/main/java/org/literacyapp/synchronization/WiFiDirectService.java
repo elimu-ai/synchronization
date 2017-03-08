@@ -74,8 +74,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         if (fileServerAsyncTask != null)
             fileServerAsyncTask.close();
         removeGroup();
-        if (receiver != null)
-            unregisterReceiver(receiver);
+        if (receiver != null) {
+            try {
+                unregisterReceiver(receiver);
+            }
+            catch (Exception e) {
+                Log.w(P.Tag, "unregisterReceiver failed", e);
+            }
+        }
 
     }
 
@@ -100,17 +106,18 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         }
 
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
         start();
 
         return START_STICKY;
     }
 
     private void start() {
+
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
         if (senderReceiverType != null) {
             Log.i(P.Tag, "===senderReceiverType: " + senderReceiverType);
         }
