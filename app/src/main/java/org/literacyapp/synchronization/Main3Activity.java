@@ -62,7 +62,7 @@ public class Main3Activity extends AppCompatActivity {
 
             case R.id.action_delete_groups:
                 Log.i(P.Tag, "action_delete_groups selected");
-                GroupDeleteHelper gh = new GroupDeleteHelper(getApplicationContext());
+                GroupDeleteHelper gh = new GroupDeleteHelper(getApplicationContext(), true);
                 gh.deleteGroups();
                 return true;
 
