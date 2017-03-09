@@ -5,7 +5,10 @@
     <item android:id="@+id/action_start" android:title="@string/start"
         app:showAsAction="never" />
 
-    <item android:id="@+id/action_force_stop" android:title="@string/force_stop"
+    <item android:id="@+id/action_stop_wifi_direct" android:title="@string/stop_wifi"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_stop_controller" android:title="@string/stop_controller"
         app:showAsAction="never" />
 
     <item android:id="@+id/action_delete_groups" android:title="@string/delete_groups"

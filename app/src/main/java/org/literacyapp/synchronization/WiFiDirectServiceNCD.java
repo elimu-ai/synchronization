@@ -107,7 +107,6 @@ public class WiFiDirectServiceNCD extends Service implements WifiP2pManager.Chan
 
         if (intent != null && intent.getExtras() != null) {
             senderReceiverType = intent.getExtras().getString("sender_receiver");
-
         }
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);

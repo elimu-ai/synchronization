@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Synchronization (LiteracyApp)</string>
-    <string name="force_stop">Force Stop</string>
+    <string name="stop_wifi">Stop WiFi Direct Service</string>
+    <string name="stop_controller">Stop Controller Service</string>
     <string name="delete_groups">Delete Groups</string>
-    <string name="start">Start</string>
+    <string name="start">Start Controller</string>
     <string name="start_sender">Start as sender</string>
     <string name="start_receiver">Start as receiver</string>
     <string name="about">About</string>

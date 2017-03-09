@@ -23,14 +23,7 @@
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Main2Activity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-            </intent-filter>
-        </activity>
         <activity
             android:name=".Main3Activity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
@@ -42,6 +35,11 @@
 
         <service
             android:name=".WiFiDirectService"
+            android:enabled="true"
+            android:exported="false"></service>
+
+        <service
+            android:name=".ControllerService"
             android:enabled="true"
             android:exported="false"></service>
     </application>

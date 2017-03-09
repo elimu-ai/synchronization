@@ -54,10 +54,16 @@ public class Main3Activity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_force_stop:
-                Log.i(P.Tag, "action_force_stop selected");
+            case R.id.action_stop_wifi_direct:
+                Log.i(P.Tag, "action_stop_wifi_direct selected");
                 Intent i1 = new Intent(getApplicationContext(), WiFiDirectService.class);
                 stopService(i1);
+                return true;
+
+            case R.id.action_stop_controller:
+                Log.i(P.Tag, "action_stop_controller selected");
+                Intent i5 = new Intent(getApplicationContext(), ControllerService.class);
+                stopService(i5);
                 return true;
 
             case R.id.action_delete_groups:
@@ -68,7 +74,7 @@ public class Main3Activity extends AppCompatActivity {
 
             case R.id.action_start:
                 Log.i(P.Tag, "action_start selected");
-                Intent i4 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
                 startService(i4);
                 return true;
 

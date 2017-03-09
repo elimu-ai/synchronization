@@ -25,6 +25,8 @@ public class P {
     public static final String SENDER = "sender";
     public static final String RECEIVER = "receiver";
     public static final int PORT = 8988;
+    public static final int CONTROLLER_BASE_INTERVAL_TIME_MINS = 5;
+    public static final int CONTROLLER_DIFF_INTERVAL_TIME_SECS = 5*60;
 
     public static final String TEST_SUB_FOLDER1 = "/test_files/l1/";
     public static final String TEST_SUB_FOLDER2 = "/test_files/l1/l2/";

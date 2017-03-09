@@ -10,6 +10,9 @@ import android.util.Log;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.widget.Toast;
 
+/***
+ * Helper for deletion of WiFi Direct persistent groups.
+ */
 public class GroupDeleteHelper   {
 	
 	private Context ctx;
