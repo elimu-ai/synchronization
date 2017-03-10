@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 /**
  * Created by eli on 15/01/2017.
@@ -36,6 +37,7 @@ public class P {
     private static Status mStatus = Status.Idle;
 
     public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected, SentOK, ReceivedOK,  }
+    public enum DeviceStatus {NA,Sent,Received, SentAndReceived  }
 
     public static void setStatus(Status status) {
         mStatus = status;
@@ -219,6 +221,59 @@ public class P {
         }
         return versionName;
     }
+
+    public static Set<String> getDeviceIds(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        return sp.getStringSet("devices_ids", null);
+    }
+
+    public static void cleanDeviceIds(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putStringSet("devices_ids", null);
+        editor.commit();
+    }
+
+    public static class DevicesHelper {
+
+        public static boolean isDeviceIdInList(Context ctx, String deviceId) {
+            Set<String> currentDeviceIdsList = getDeviceIds(ctx);
+            if (currentDeviceIdsList.contains(deviceId)) {
+                return true;
+            }
+            else return false;
+        }
+
+        public static void addDeviceId(Context ctx, String deviceId) {
+            Set<String> currentDeviceIdsList = getDeviceIds(ctx);
+            if (currentDeviceIdsList.contains(deviceId)) {
+                Log.d(P.Tag, "Device: " + deviceId + " already in the list");
+                return;
+            }
+            currentDeviceIdsList.add(deviceId);
+            setDeviceIdStatus(ctx, deviceId, DeviceStatus.NA);
+
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putStringSet("devices_ids", currentDeviceIdsList);
+            editor.commit();
+            Log.d(P.Tag, "Device: " + deviceId + " added to the list");
+        }
+
+
+        public static void setDeviceIdStatus(Context ctx, String deviceId, Enum deviceStatus) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(deviceId, deviceStatus.toString());
+            editor.commit();
+        }
+
+        public static String getDeviceStatus(Context ctx, String deviceId) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            return sp.getString(deviceId, DeviceStatus.NA.toString());
+        }
+    }
+
 
 
 }
