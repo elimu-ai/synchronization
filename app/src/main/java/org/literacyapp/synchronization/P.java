@@ -26,8 +26,10 @@ public class P {
     public static final String SENDER = "sender";
     public static final String RECEIVER = "receiver";
     public static final int PORT = 8988;
-    public static final int CONTROLLER_BASE_INTERVAL_TIME_MINS = 5;
-    public static final int CONTROLLER_DIFF_INTERVAL_TIME_SECS = 5*60;
+    public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 5;
+    public static final int CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS = 5*60;
+
+    public static final int CONTROLLER_RUN_TIME_MINS = 25;
 
     public static final String TEST_SUB_FOLDER1 = "/test_files/l1/";
     public static final String TEST_SUB_FOLDER2 = "/test_files/l1/l2/";
@@ -37,7 +39,7 @@ public class P {
     private static Status mStatus = Status.Idle;
 
     public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected, SentOK, ReceivedOK,  }
-    public enum DeviceStatus {NA,Sent,Received, SentAndReceived  }
+
 
     public static void setStatus(Status status) {
         mStatus = status;
@@ -236,6 +238,8 @@ public class P {
 
     public static class DevicesHelper {
 
+        public enum DeviceStatus {NA,Sent,Received, SentAndReceived  }
+
         public static boolean isDeviceIdInList(Context ctx, String deviceId) {
             Set<String> currentDeviceIdsList = getDeviceIds(ctx);
             if (currentDeviceIdsList.contains(deviceId)) {
@@ -271,6 +275,15 @@ public class P {
         public static String getDeviceStatus(Context ctx, String deviceId) {
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
             return sp.getString(deviceId, DeviceStatus.NA.toString());
+        }
+
+        /**
+         *
+         * @return true if All devices/peers have the SentOK & ReceivedOK state.
+         */
+        public static boolean isAllDevicesFinished() {
+            //TODO implement
+            return false;
         }
     }
 

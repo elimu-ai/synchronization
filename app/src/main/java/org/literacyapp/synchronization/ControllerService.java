@@ -12,6 +12,8 @@ import java.util.TimerTask;
 
 /**
  * Created by eli on 09/03/2017.
+ * Responsible for instantiating the WiFiDirectService, and according to the status of
+ * The peers/devices.
  */
 
 public class ControllerService extends Service {
@@ -19,7 +21,7 @@ public class ControllerService extends Service {
     private boolean isSender;
     private boolean isKillService = false;
     private long startTime;
-    private long intervalTimeMillis;
+    private long sessionIntervalTimeMillis;
     private GroupDeleteHelper gdh;
     @Nullable
     @Override
@@ -40,20 +42,21 @@ public class ControllerService extends Service {
         gdh.deleteGroups();
         Random rand = new Random();
 
-        int intervalTimeDiff =rand.nextInt(P.CONTROLLER_DIFF_INTERVAL_TIME_SECS);
+        int intervalTimeDiff = rand.nextInt(P.CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS);
         startTime = System.currentTimeMillis();
-        // will be between 5mins to 10mins
-        int intervalTimeSecs = P.CONTROLLER_BASE_INTERVAL_TIME_MINS*60 + intervalTimeDiff;
+        // session interval will be between 5mins to 10mins
+        int intervalTimeSecs = P.CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS *60 + intervalTimeDiff;
         Log.d(P.Tag, "ControllerService intervalTimeSecs: " + intervalTimeSecs);
-        intervalTimeMillis = intervalTimeSecs * 1000;
+        sessionIntervalTimeMillis = intervalTimeSecs * 1000;
 
 
         isSender = rand.nextBoolean();
         Log.d(P.Tag, "ControllerService isSender: " + isSender);
         startWiFiDirectService();
 
-        final Timer watchDogTimer = new Timer();
-        watchDogTimer.schedule(new TimerTask() {
+        // will run every 10secs till timer is canceled (delayed 1sec)
+        final Timer sessionTimer = new Timer();
+        sessionTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (P.getStatus() == P.Status.SentOK || P.getStatus() == P.Status.ReceivedOK) {
@@ -61,15 +64,42 @@ public class ControllerService extends Service {
                 }
                 if (isKillService) {
                     stopWiFiDirectService();
-                    watchDogTimer.cancel();
+                    sessionTimer.cancel();
                 }
-                if ( (System.currentTimeMillis() - startTime) > intervalTimeMillis) {
+                if ( (System.currentTimeMillis() - startTime) > sessionIntervalTimeMillis) {
                     Log.d(P.Tag, "Controller session timed-out");
                     reverseWiFiDirectServiceRolls();
                 }
             }
             // run every 10 secs (after 1 secs)
         }, 1000, 10000);
+
+
+        // will run every 20secs till timer is canceled (delayed 3secs)
+        final Timer controllerTimer = new Timer();
+        controllerTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                long controllerRunTimeMS = P.CONTROLLER_RUN_TIME_MINS * 60000;
+                if ((startTime - System.currentTimeMillis() ) > controllerRunTimeMS) {
+                    Log.w(P.Tag, "Controller timed-out");
+                    isKillService = true;
+                    stopWiFiDirectService();
+                    controllerTimer.cancel();
+                }
+                // All devices/peers have the SentOK & ReceivedOK state.
+                if (P.DevicesHelper.isAllDevicesFinished()) {
+                    Log.w(P.Tag, "Controller finished OK");
+                    isKillService = true;
+                    stopWiFiDirectService();
+                    controllerTimer.cancel();
+                }
+
+
+
+            }
+            // run every 10 secs (after 1 secs)
+        }, 3000, 20000);
 
         return START_STICKY;
     }
