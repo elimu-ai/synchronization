@@ -88,7 +88,7 @@ public class ControllerService extends Service {
                     controllerTimer.cancel();
                 }
                 // All devices/peers have the SentOK & ReceivedOK state.
-                if (P.DevicesHelper.isAllDevicesFinished()) {
+                if (P.DevicesHelper.isAllDevicesFinished(getApplicationContext())) {
                     Log.w(P.Tag, "Controller finished OK");
                     isKillService = true;
                     stopWiFiDirectService();

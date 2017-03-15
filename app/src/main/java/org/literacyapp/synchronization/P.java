@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -224,21 +225,23 @@ public class P {
         return versionName;
     }
 
-    public static Set<String> getDeviceIds(Context ctx) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        return sp.getStringSet("devices_ids", null);
-    }
 
-    public static void cleanDeviceIds(Context ctx) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putStringSet("devices_ids", null);
-        editor.commit();
-    }
 
     public static class DevicesHelper {
 
         public enum DeviceStatus {NA,Sent,Received, SentAndReceived  }
+
+        public static Set<String> getDeviceIds(Context ctx) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            return sp.getStringSet("devices_ids", null);
+        }
+
+        public static void cleanDeviceIds(Context ctx) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putStringSet("devices_ids", null);
+            editor.commit();
+        }
 
         public static boolean isDeviceIdInList(Context ctx, String deviceId) {
             Set<String> currentDeviceIdsList = getDeviceIds(ctx);
@@ -281,9 +284,24 @@ public class P {
          *
          * @return true if All devices/peers have the SentOK & ReceivedOK state.
          */
-        public static boolean isAllDevicesFinished() {
-            //TODO implement
-            return false;
+        public static boolean isAllDevicesFinished(Context ctx) {
+            boolean isAllFinished = true;
+            Set<String> deviceIds = getDeviceIds(ctx);
+            if (deviceIds == null) {
+                Log.d(P.Tag, "Device List is empty, finishing");
+                return false;
+            }
+            Iterator iter = deviceIds.iterator();
+            while (iter.hasNext()) {
+                String deviceId = (String)iter.next();
+                String status = getDeviceStatus(ctx, deviceId);
+                Log.d(P.Tag, "device: " + deviceId + " status: " + status);
+                if (!status.equals(DeviceStatus.SentAndReceived.toString())) {
+                    isAllFinished = false;
+                    break;
+                }
+            }
+            return isAllFinished;
         }
     }
 

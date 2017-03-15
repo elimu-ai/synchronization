@@ -67,8 +67,10 @@ public class GroupDeleteHelper   {
 											deletePersistentGroupMethod.invoke(mManager, mChannel, (Integer) WifiP2pGroup.class.getMethod("getNetworkId").invoke(group, null), new WifiP2pManager.ActionListener() {
 												@Override
 												public void onSuccess() {
-													if (isUI)
+													if (isUI) {
 														Log.i(P.Tag, "Persistent Group deleted");
+
+													}
 
 												}
 
@@ -90,7 +92,8 @@ public class GroupDeleteHelper   {
 					WifiP2pManager.class.getDeclaredMethod("requestPersistentGroupInfo", new Class[]{Channel.class, persistentInterface});
 
 			requestPersistentGroupMethod.invoke(mManager, mChannel, persitentInterfaceObject);
-			Toast.makeText(ctx,"Persistent Groups deleted",Toast.LENGTH_LONG).show();
+			if (isUI)
+				Toast.makeText(ctx,"Persistent Groups deleted",Toast.LENGTH_LONG).show();
 
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -426,13 +426,13 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             Log.d(P.Tag, "deviceAddress: " + device.deviceAddress);
             Log.d(P.Tag, "device.status: " + device.status);
 
-            String deviceStatus = P.DeviceStatus.NA.toString();
+            String deviceStatus = P.DevicesHelper.DeviceStatus.NA.toString();
             if (P.DevicesHelper.isDeviceIdInList(getApplicationContext(), device.deviceName)) {
                 deviceStatus =  P.DevicesHelper.getDeviceStatus(getApplicationContext(), device.deviceName);
             }
             else {
                 P.DevicesHelper.addDeviceId(getApplicationContext(), device.deviceName);
-                P.DevicesHelper.setDeviceIdStatus(getApplicationContext(),device.deviceName, P.DeviceStatus.NA);
+                P.DevicesHelper.setDeviceIdStatus(getApplicationContext(),device.deviceName, P.DevicesHelper.DeviceStatus.NA);
             }
 
             if (device.status != WifiP2pDevice.CONNECTED) {
@@ -445,14 +445,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     if (senderReceiverType.equals(P.SENDER)) {
                         Log.i(P.TAG, "not Receiver, config.groupOwnerIntent 0");
                         config.groupOwnerIntent = 0;
-                        if (deviceStatus.equals(P.DeviceStatus.Received) || deviceStatus.equals(P.DeviceStatus.SentAndReceived)) {
+                        if (deviceStatus.equals(P.DevicesHelper.DeviceStatus.Received) || deviceStatus.equals(P.DevicesHelper.DeviceStatus.SentAndReceived)) {
                             isAbortConnection = true;
                             Log.i(P.Tag, "isAbortConnection true, device already Received information");
                         }
                     } else {
                         Log.i(P.TAG, "setReceiver, config.groupOwnerIntent 15 ");
                         config.groupOwnerIntent = 15;
-                        if (deviceStatus.equals(P.DeviceStatus.Sent) || deviceStatus.equals(P.DeviceStatus.SentAndReceived)) {
+                        if (deviceStatus.equals(P.DevicesHelper.DeviceStatus.Sent) || deviceStatus.equals(P.DevicesHelper.DeviceStatus.SentAndReceived)) {
                             isAbortConnection = true;
                             Log.i(P.Tag, "isAbortConnection true, device already Sent information");
                         }
