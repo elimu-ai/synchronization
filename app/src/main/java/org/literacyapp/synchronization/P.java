@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -245,6 +246,7 @@ public class P {
 
         public static boolean isDeviceIdInList(Context ctx, String deviceId) {
             Set<String> currentDeviceIdsList = getDeviceIds(ctx);
+            if (currentDeviceIdsList == null) return false;
             if (currentDeviceIdsList.contains(deviceId)) {
                 return true;
             }
@@ -253,6 +255,11 @@ public class P {
 
         public static void addDeviceId(Context ctx, String deviceId) {
             Set<String> currentDeviceIdsList = getDeviceIds(ctx);
+            if (currentDeviceIdsList == null) {
+                Log.i(P.Tag, "currentDeviceIdsList is null, creating new empty one");
+                currentDeviceIdsList = new HashSet<String>();
+
+            }
             if (currentDeviceIdsList.contains(deviceId)) {
                 Log.d(P.Tag, "Device: " + deviceId + " already in the list");
                 return;
@@ -288,14 +295,14 @@ public class P {
             boolean isAllFinished = true;
             Set<String> deviceIds = getDeviceIds(ctx);
             if (deviceIds == null) {
-                Log.d(P.Tag, "Device List is empty, finishing");
+                Log.d(P.Tag, "===Device List is empty, finishing");
                 return false;
             }
             Iterator iter = deviceIds.iterator();
             while (iter.hasNext()) {
                 String deviceId = (String)iter.next();
                 String status = getDeviceStatus(ctx, deviceId);
-                Log.d(P.Tag, "device: " + deviceId + " status: " + status);
+                Log.d(P.Tag, "===device: " + deviceId + " status: " + status);
                 if (!status.equals(DeviceStatus.SentAndReceived.toString())) {
                     isAllFinished = false;
                     break;

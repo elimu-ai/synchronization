@@ -119,10 +119,10 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         if (senderReceiverType != null) {
-            Log.i(P.Tag, "===senderReceiverType: " + senderReceiverType);
+            Log.i(P.Tag, "senderReceiverType: " + senderReceiverType);
         }
         else
-            Log.w(P.Tag, "===senderReceiverType is null");
+            Log.w(P.Tag, "senderReceiverType is null");
 
         isKillService = false;
         manager = (WifiP2pManager) getSystemService(WIFI_P2P_SERVICE);
@@ -267,7 +267,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
             } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
-                Log.d(P.Tag, "====P2P peers changed");
+                Log.d(P.Tag, "P2P peers changed");
                 P.setStatus(P.Status.FoundPeers);
 
                 // request available peers from the wifi p2p manager. This is an
@@ -347,14 +347,14 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
             @Override
             public void onSuccess() {
-                Log.i(P.Tag, "===connect onSuccess()");
+                Log.i(P.Tag, "connect onSuccess()");
                 P.setStatus(P.Status.Connected);
                 // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
             }
 
             @Override
             public void onFailure(int reason) {
-                Log.i(P.Tag, "===connect onFailure(): " + reason);
+                Log.i(P.Tag, "connect onFailure(): " + reason);
 
             }
         });
@@ -367,7 +367,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        Log.i(P.Tag, "===onConnectionInfoAvailable");
+        Log.i(P.Tag, "onConnectionInfoAvailable");
 
         if (info != null && info.groupOwnerAddress != null) {
             Log.i(P.Tag, "info.groupOwnerAddress.getHostAddress(): " + info.groupOwnerAddress.getHostAddress());
@@ -556,7 +556,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                             ret = new String (buf).trim();
                             if (ret.equals(FINISH_STR)) {
-                                Log.i(P.Tag, "=== got finish str on the receiver===");
+                                Log.i(P.Tag, "got finish str on the receiver");
                                 ret = null;
                                 isFinished = true;
                                 break;
@@ -922,7 +922,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         extsb.append(FINISH_STR);
                         extsb.setLength(1024);
                         Log.d(P.TAG, "str.getBytes().length: " + extsb.toString().getBytes().length);
-                        Log.i(P.Tag, "=== sending finish string ===");
+                        Log.i(P.Tag, "sending finish string");
                         out.write(extsb.toString().getBytes(), 0, 1024);
 
                         if (socket.isConnected()) {

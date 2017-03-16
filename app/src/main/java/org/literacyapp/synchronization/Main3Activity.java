@@ -27,6 +27,9 @@ public class Main3Activity extends AppCompatActivity {
         P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
         P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main3);
+        Log.i(P.Tag, "starting controller");
+        Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
+        startService(i4);
     }
 
     @Override

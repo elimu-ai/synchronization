@@ -60,6 +60,7 @@ public class ControllerService extends Service {
             @Override
             public void run() {
                 if (P.getStatus() == P.Status.SentOK || P.getStatus() == P.Status.ReceivedOK) {
+                      Log.d(P.Tag, "===Session ended successfully, calling reverseWiFiDirectServiceRolls");
                       reverseWiFiDirectServiceRolls();
                 }
                 if (isKillService) {
@@ -67,7 +68,7 @@ public class ControllerService extends Service {
                     sessionTimer.cancel();
                 }
                 if ( (System.currentTimeMillis() - startTime) > sessionIntervalTimeMillis) {
-                    Log.d(P.Tag, "Controller session timed-out");
+                    Log.d(P.Tag, "===Controller session timed-out");
                     reverseWiFiDirectServiceRolls();
                 }
             }
@@ -82,14 +83,14 @@ public class ControllerService extends Service {
             public void run() {
                 long controllerRunTimeMS = P.CONTROLLER_RUN_TIME_MINS * 60000;
                 if ((startTime - System.currentTimeMillis() ) > controllerRunTimeMS) {
-                    Log.w(P.Tag, "Controller timed-out");
+                    Log.w(P.Tag, "===Controller timed-out");
                     isKillService = true;
                     stopWiFiDirectService();
                     controllerTimer.cancel();
                 }
                 // All devices/peers have the SentOK & ReceivedOK state.
                 if (P.DevicesHelper.isAllDevicesFinished(getApplicationContext())) {
-                    Log.w(P.Tag, "Controller finished OK");
+                    Log.w(P.Tag, "===Controller finished OK");
                     isKillService = true;
                     stopWiFiDirectService();
                     controllerTimer.cancel();
