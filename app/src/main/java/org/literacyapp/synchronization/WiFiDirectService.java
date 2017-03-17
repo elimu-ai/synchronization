@@ -49,6 +49,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
     private static final String FINISH_STR = "###finish###";
     private String senderReceiverType = null;
     private List<WifiP2pDevice> peers = new ArrayList<>();
+    private String currentDevice = null;
 
 
 
@@ -431,6 +432,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 deviceStatus =  P.DevicesHelper.getDeviceStatus(getApplicationContext(), device.deviceName);
             }
             else {
+                Log.d(P.Tag, "===device: "  + " not in list, setting status to NA.");
                 P.DevicesHelper.addDeviceId(getApplicationContext(), device.deviceName);
                 P.DevicesHelper.setDeviceIdStatus(getApplicationContext(),device.deviceName, P.DevicesHelper.DeviceStatus.NA);
             }
@@ -461,6 +463,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 if (!isAbortConnection) {
                     connect(config);
                     P.setStatus(P.Status.Connecting);
+                    currentDevice = device.deviceName;
                 }
             }
 
@@ -678,6 +681,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 else {
                     Log.i(P.Tag, "Got finished message from sender");
                     P.setStatus(P.Status.ReceivedOK);
+                    P.DevicesHelper.setDeviceIdStatusSmart(getApplicationContext(), currentDevice, P.DevicesHelper.DeviceStatus.Sent);
                     return null;
                 }
             } catch (IOException e) {
@@ -935,6 +939,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                         }
 
                         P.setStatus(P.Status.SentOK);
+                        P.DevicesHelper.setDeviceIdStatusSmart(getApplicationContext(), currentDevice, P.DevicesHelper.DeviceStatus.Received);
                     } catch (IOException e1) {
                         Log.e(P.Tag, "failed to send finish msg: " + e1.getMessage());
                         restart();
@@ -1022,7 +1027,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         else
             Log.i(P.Tag, "peers are null");
 
-        //new GroupDeleteHelper(getApplicationContext()).deleteGroups();
+
     }
 
 

@@ -36,10 +36,16 @@ public class ControllerService extends Service {
         isKillService = true;
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    private void cleanState() {
         gdh = new GroupDeleteHelper(getApplicationContext(), false);
         gdh.deleteGroups();
+        P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        cleanState();
+
         Random rand = new Random();
 
         int intervalTimeDiff = rand.nextInt(P.CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS);
@@ -49,9 +55,8 @@ public class ControllerService extends Service {
         Log.d(P.Tag, "ControllerService intervalTimeSecs: " + intervalTimeSecs);
         sessionIntervalTimeMillis = intervalTimeSecs * 1000;
 
-
         isSender = rand.nextBoolean();
-        Log.d(P.Tag, "ControllerService isSender: " + isSender);
+        Log.d(P.Tag, "===ControllerService isSender: " + isSender);
         startWiFiDirectService();
 
         // will run every 10secs till timer is canceled (delayed 1sec)
@@ -59,6 +64,7 @@ public class ControllerService extends Service {
         sessionTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                Log.d(P.Tag, "===Controller session timer called");
                 if (P.getStatus() == P.Status.SentOK || P.getStatus() == P.Status.ReceivedOK) {
                       Log.d(P.Tag, "===Session ended successfully, calling reverseWiFiDirectServiceRolls");
                       reverseWiFiDirectServiceRolls();
@@ -81,6 +87,7 @@ public class ControllerService extends Service {
         controllerTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                Log.d(P.Tag, "===Controller global timer called");
                 long controllerRunTimeMS = P.CONTROLLER_RUN_TIME_MINS * 60000;
                 if ((startTime - System.currentTimeMillis() ) > controllerRunTimeMS) {
                     Log.w(P.Tag, "===Controller timed-out");
@@ -88,6 +95,7 @@ public class ControllerService extends Service {
                     stopWiFiDirectService();
                     controllerTimer.cancel();
                 }
+
                 // All devices/peers have the SentOK & ReceivedOK state.
                 if (P.DevicesHelper.isAllDevicesFinished(getApplicationContext())) {
                     Log.w(P.Tag, "===Controller finished OK");
@@ -106,7 +114,7 @@ public class ControllerService extends Service {
     }
 
     private void reverseWiFiDirectServiceRolls() {
-        gdh.deleteGroups();
+        //gdh.deleteGroups();
         startTime = System.currentTimeMillis();
         stopWiFiDirectService();
         try { Thread.sleep(3000); } catch (InterruptedException e) { }

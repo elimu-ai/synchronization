@@ -256,12 +256,12 @@ public class P {
         public static void addDeviceId(Context ctx, String deviceId) {
             Set<String> currentDeviceIdsList = getDeviceIds(ctx);
             if (currentDeviceIdsList == null) {
-                Log.i(P.Tag, "currentDeviceIdsList is null, creating new empty one");
+                Log.i(P.Tag, "===currentDeviceIdsList is null, creating new empty one");
                 currentDeviceIdsList = new HashSet<String>();
 
             }
             if (currentDeviceIdsList.contains(deviceId)) {
-                Log.d(P.Tag, "Device: " + deviceId + " already in the list");
+                Log.d(P.Tag, "===Device: " + deviceId + " already in the list");
                 return;
             }
             currentDeviceIdsList.add(deviceId);
@@ -271,15 +271,40 @@ public class P {
             SharedPreferences.Editor editor = sp.edit();
             editor.putStringSet("devices_ids", currentDeviceIdsList);
             editor.commit();
-            Log.d(P.Tag, "Device: " + deviceId + " added to the list");
+            Log.d(P.Tag, "===Device: " + deviceId + " added to the list");
         }
 
 
         public static void setDeviceIdStatus(Context ctx, String deviceId, Enum deviceStatus) {
+            Log.d(P.Tag, "===setDeviceIdStatus " + deviceId + " " + deviceStatus);
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
             SharedPreferences.Editor editor = sp.edit();
             editor.putString(deviceId, deviceStatus.toString());
             editor.commit();
+        }
+
+        public static void setDeviceIdStatusSmart(Context ctx, String deviceId, Enum deviceStatus) {
+            String currentStatus = getDeviceStatus(ctx, deviceId);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+            SharedPreferences.Editor editor = sp.edit();
+            if (currentStatus.equals(DeviceStatus.Received.toString()) && deviceStatus == DeviceStatus.Sent)  {
+                editor.putString(deviceId, DeviceStatus.SentAndReceived.toString());
+                editor.commit();
+                Log.d(P.Tag, "===Device: " + deviceId + " set DeviceStatus.SentAndReceived");
+
+            }
+            else if  (currentStatus.equals(DeviceStatus.Sent.toString()) && deviceStatus == DeviceStatus.Received)  {
+                editor.putString(deviceId, DeviceStatus.SentAndReceived.toString());
+                editor.commit();
+                Log.d(P.Tag, "===Device: " + deviceId + " set DeviceStatus.SentAndReceived");
+            }
+            else {
+                editor.putString(deviceId, deviceStatus.toString());
+                editor.commit();
+                Log.d(P.Tag, "===Device: " + deviceId + " set: " + deviceStatus.toString());
+            }
+
+
         }
 
         public static String getDeviceStatus(Context ctx, String deviceId) {
@@ -292,6 +317,7 @@ public class P {
          * @return true if All devices/peers have the SentOK & ReceivedOK state.
          */
         public static boolean isAllDevicesFinished(Context ctx) {
+            Log.d(P.Tag, "===isAllDevicesFinished?");
             boolean isAllFinished = true;
             Set<String> deviceIds = getDeviceIds(ctx);
             if (deviceIds == null) {
@@ -302,7 +328,7 @@ public class P {
             while (iter.hasNext()) {
                 String deviceId = (String)iter.next();
                 String status = getDeviceStatus(ctx, deviceId);
-                Log.d(P.Tag, "===device: " + deviceId + " status: " + status);
+                Log.d(P.Tag, "=== checking device: " + deviceId + " status: " + status);
                 if (!status.equals(DeviceStatus.SentAndReceived.toString())) {
                     isAllFinished = false;
                     break;
