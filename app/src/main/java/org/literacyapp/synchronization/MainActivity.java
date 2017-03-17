@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
-public class Main3Activity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     private boolean isUIUpdateRunning = true;
 
@@ -85,14 +85,14 @@ public class Main3Activity extends AppCompatActivity {
             case R.id.action_start_sender:
                 Log.i(P.Tag, "action_start sender selected");
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
-                i2.putExtra("sender_receiver", "sender");
+                i2.putExtra("sender_receiver", P.SENDER);
                 startService(i2);
                 return true;
 
             case R.id.action_start_receiver:
                 Log.i(P.Tag, "action_start receiver selected");
                 Intent i3 = new Intent(getApplicationContext(), WiFiDirectService.class);
-                i3.putExtra("sender_receiver", "receiver");
+                i3.putExtra("sender_receiver", P.RECEIVER);
                 startService(i3);
                 return true;
 
@@ -137,8 +137,16 @@ public class Main3Activity extends AppCompatActivity {
                         }
                         try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
                         final String status = P.getStatus().toString();
+                        final String type = P.SENDER_RECEIVER_TYPE;
                         //Log.d(P.Tag, "check state");
-                        runOnUiThread(new Runnable() { public void run() { statusText.setText(status); } });
+                        runOnUiThread(new Runnable() { public void run() {
+                            String textStr = null;
+                            if (type != null) {
+                                textStr = type + " " + status;
+                            }
+                            else {textStr = status;}
+                            statusText.setText(textStr);
+                        } });
                     }
 
                 } catch(Exception e) {

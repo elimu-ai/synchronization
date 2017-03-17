@@ -121,6 +121,7 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         if (senderReceiverType != null) {
             Log.i(P.Tag, "senderReceiverType: " + senderReceiverType);
+            P.SENDER_RECEIVER_TYPE = senderReceiverType;
         }
         else
             Log.w(P.Tag, "senderReceiverType is null");

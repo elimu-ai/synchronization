@@ -25,8 +25,9 @@ public class P {
     public static final String Tag = "syncl";
     public static final String TAG = "syncl";
     public static final String testFileName = "test.jpg";
-    public static final String SENDER = "sender";
-    public static final String RECEIVER = "receiver";
+    public static final String SENDER = "Sender";
+    public static final String RECEIVER = "Receiver";
+    public static transient String SENDER_RECEIVER_TYPE = null;
     public static final int PORT = 8988;
     public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 5;
     public static final int CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS = 5*60;

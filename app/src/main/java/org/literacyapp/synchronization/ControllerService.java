@@ -130,9 +130,9 @@ public class ControllerService extends Service {
     private void startWiFiDirectService() {
         Intent i = new Intent(getApplicationContext(), WiFiDirectService.class);
         if (isSender)
-            i.putExtra("sender_receiver", "sender");
+            i.putExtra("sender_receiver", P.SENDER);
         else
-            i.putExtra("sender_receiver", "receiver");
+            i.putExtra("sender_receiver", P.RECEIVER);
         startService(i);
     }
 }
