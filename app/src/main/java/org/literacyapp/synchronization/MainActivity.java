@@ -14,8 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 public class MainActivity extends AppCompatActivity {
 
     private boolean isUIUpdateRunning = true;
@@ -26,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         checkForPermissionsMAndAbove();
         P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
         P.createTestFolderIfNeeded(getApplicationContext());
-        setContentView(R.layout.activity_main3);
+        setContentView(R.layout.activity_main);
         Log.i(P.Tag, "starting controller");
         Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
         startService(i4);
@@ -125,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateUI () {
         final TextView statusText = ((TextView) findViewById(R.id.statusTextView));
+        final TextView devicesStatusText = ((TextView) findViewById(R.id.statusDevices));
         new Thread() {
             public void run() {
                 Log.d(P.Tag,"Status Update started");
@@ -146,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             else {textStr = status;}
                             statusText.setText(textStr);
+                            devicesStatusText.setText(P.DevicesHelper.getDevicesStatusAsString(getApplicationContext()));
                         } });
                     }
 

@@ -322,7 +322,7 @@ public class P {
             boolean isAllFinished = true;
             Set<String> deviceIds = getDeviceIds(ctx);
             if (deviceIds == null) {
-                Log.d(P.Tag, "===Device List is empty, finishing");
+                Log.d(P.Tag, "===Device List is empty.");
                 return false;
             }
             Iterator iter = deviceIds.iterator();
@@ -337,6 +337,28 @@ public class P {
             }
             return isAllFinished;
         }
+
+
+        public static String getDevicesStatusAsString(Context ctx) {
+            Log.d(P.Tag, "===getDevicesStatusAsString");
+            String devicesStatusStr = "";
+            String line = "";
+            Set<String> deviceIds = getDeviceIds(ctx);
+            if (deviceIds == null) {
+                //Log.d(P.Tag, "===Device List is empty.");
+                return "";
+            }
+            Iterator iter = deviceIds.iterator();
+            while (iter.hasNext()) {
+                String deviceId = (String)iter.next();
+                String status = getDeviceStatus(ctx, deviceId);
+                Log.d(P.Tag, "=== device: " + deviceId + " status: " + status);
+                line = deviceId + " " + status + "\n";
+                devicesStatusStr += line;
+            }
+            return devicesStatusStr;
+        }
+
     }
 
 

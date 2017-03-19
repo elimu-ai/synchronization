@@ -37,8 +37,8 @@ public class ControllerService extends Service {
     }
 
     private void cleanState() {
-        gdh = new GroupDeleteHelper(getApplicationContext(), false);
-        gdh.deleteGroups();
+        //gdh = new GroupDeleteHelper(getApplicationContext(), false);
+        //gdh.deleteGroups();
         P.DevicesHelper.cleanDeviceIds(getApplicationContext());
     }
 
