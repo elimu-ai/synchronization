@@ -88,6 +88,12 @@ public class ControllerService extends Service {
             @Override
             public void run() {
                 Log.d(P.Tag, "===Controller global timer called");
+
+                if (isKillService == true) {
+                    Log.d(P.Tag, "controllerTimer got killService (ControllerService destroyed), stopping timer");
+                    controllerTimer.cancel();
+                }
+
                 long controllerRunTimeMS = P.CONTROLLER_RUN_TIME_MINS * 60000;
                 if ((startTime - System.currentTimeMillis() ) > controllerRunTimeMS) {
                     Log.w(P.Tag, "===Controller timed-out");
@@ -103,6 +109,18 @@ public class ControllerService extends Service {
                     stopWiFiDirectService();
                     controllerTimer.cancel();
                 }
+
+                // WiFiDirect Service watchdog
+                if (!P.isWiFiDirectServiceRunning(getApplicationContext())) {
+                    if (!isKillService) {
+                        Log.w(P.Tag, "===WifiDirectService is not running, starting.");
+                        startWiFiDirectService();
+                    }
+                    else {
+                        Log.d(P.Tag, "isKillService is true, watchdog not starting service");
+                    }
+                }
+                else Log.d(P.Tag, "===WifiDirectService is running OK.");
 
 
 

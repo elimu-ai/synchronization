@@ -1,5 +1,6 @@
 package org.literacyapp.synchronization;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -29,7 +30,7 @@ public class P {
     public static final String RECEIVER = "Receiver";
     public static transient String SENDER_RECEIVER_TYPE = null;
     public static final int PORT = 8988;
-    public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 5;
+    public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 1;
     public static final int CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS = 5*60;
 
     public static final int CONTROLLER_RUN_TIME_MINS = 25;
@@ -225,6 +226,20 @@ public class P {
             Log.w(P.Tag, "No version code found, returning -1");
         }
         return versionName;
+    }
+
+    public static boolean isWiFiDirectServiceRunning(Context ctx) {
+        return P.isMyServiceRunning(WiFiDirectService.class, ctx);
+    }
+
+    public static boolean isMyServiceRunning(Class<?> serviceClass, Context ctx) {
+        ActivityManager manager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

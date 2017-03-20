@@ -25,9 +25,10 @@ public class MainActivity extends AppCompatActivity {
         P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
         P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main);
-        Log.i(P.Tag, "starting controller");
-        Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
-        startService(i4);
+        P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+//        Log.i(P.Tag, "starting controller");
+//        Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
+//        startService(i4);
     }
 
     @Override
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.action_start_sender:
                 Log.i(P.Tag, "action_start sender selected");
+                P.DevicesHelper.cleanDeviceIds(getApplicationContext());
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
                 i2.putExtra("sender_receiver", P.SENDER);
                 startService(i2);
@@ -89,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.action_start_receiver:
                 Log.i(P.Tag, "action_start receiver selected");
+                P.DevicesHelper.cleanDeviceIds(getApplicationContext());
                 Intent i3 = new Intent(getApplicationContext(), WiFiDirectService.class);
                 i3.putExtra("sender_receiver", P.RECEIVER);
                 startService(i3);

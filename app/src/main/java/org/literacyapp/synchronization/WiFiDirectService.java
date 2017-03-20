@@ -123,8 +123,11 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
             Log.i(P.Tag, "senderReceiverType: " + senderReceiverType);
             P.SENDER_RECEIVER_TYPE = senderReceiverType;
         }
-        else
-            Log.w(P.Tag, "senderReceiverType is null");
+        else {
+            Log.e(P.Tag, "senderReceiverType is null, not starting");
+            isKillService = true;
+            return;
+        }
 
         isKillService = false;
         manager = (WifiP2pManager) getSystemService(WIFI_P2P_SERVICE);
@@ -686,7 +689,8 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                     return null;
                 }
             } catch (IOException e) {
-                Log.e(P.TAG, e.getMessage());
+                Log.e(P.TAG, "FileServerAsyncTask IOException: " + e.getMessage());
+                isEnabled = false;
                 return null;
             } finally {
                 if (wakeLock != null) {
@@ -712,15 +716,6 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
         @Override
         protected void onPostExecute(String result) {
-
-            if (isCanceled) {
-
-            }
-            else  {
-                if (result != null) {
-
-                }
-            }
 
             // reseting isCanceled state for the next operation
             if (isCanceled) {
