@@ -84,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_start_sender:
                 Log.i(P.Tag, "action_start sender selected");
                 P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+                GroupDeleteHelper gh2 = new GroupDeleteHelper(getApplicationContext(), true);
+                gh2.deleteGroups();
                 Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
                 i2.putExtra("sender_receiver", P.SENDER);
                 startService(i2);
@@ -92,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_start_receiver:
                 Log.i(P.Tag, "action_start receiver selected");
                 P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+                GroupDeleteHelper gh3 = new GroupDeleteHelper(getApplicationContext(), true);
+                gh3.deleteGroups();
                 Intent i3 = new Intent(getApplicationContext(), WiFiDirectService.class);
                 i3.putExtra("sender_receiver", P.RECEIVER);
                 startService(i3);

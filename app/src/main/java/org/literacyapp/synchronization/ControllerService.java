@@ -37,8 +37,8 @@ public class ControllerService extends Service {
     }
 
     private void cleanState() {
-        //gdh = new GroupDeleteHelper(getApplicationContext(), false);
-        //gdh.deleteGroups();
+        gdh = new GroupDeleteHelper(getApplicationContext(), false);
+        gdh.deleteGroups();
         P.DevicesHelper.cleanDeviceIds(getApplicationContext());
     }
 
@@ -132,7 +132,7 @@ public class ControllerService extends Service {
     }
 
     private void reverseWiFiDirectServiceRolls() {
-        //gdh.deleteGroups();
+        gdh.deleteGroups();
         startTime = System.currentTimeMillis();
         stopWiFiDirectService();
         try { Thread.sleep(3000); } catch (InterruptedException e) { }

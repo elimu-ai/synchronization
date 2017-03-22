@@ -511,6 +511,11 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
                 else
                     Log.i(P.TAG, "ServerSocket is null, not closing");
 
+                if (client != null)
+                    client.close();
+                else
+                    Log.i(P.TAG, "Socket client is null, not closing");
+
             } catch (IOException e) {
                 Log.e(P.TAG, "failed to close ServerSocket");
             }
