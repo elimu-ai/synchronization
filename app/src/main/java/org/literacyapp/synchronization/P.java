@@ -4,7 +4,10 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -22,7 +25,7 @@ import java.util.Set;
  * Created by eli on 15/01/2017.
  */
 
-public class P {
+public class P extends PreferenceActivity {
     public static final String Tag = "syncl";
     public static final String TAG = "syncl";
     public static final String testFileName = "test.jpg";
@@ -30,7 +33,7 @@ public class P {
     public static final String RECEIVER = "Receiver";
     public static transient String SENDER_RECEIVER_TYPE = null;
     public static final int PORT = 8988;
-    public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 1;
+    public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 2;
     public static final int CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS = 5*60;
 
     public static final int CONTROLLER_RUN_TIME_MINS = 25;
@@ -53,22 +56,48 @@ public class P {
         return mStatus;
     }
 
-    public static void setOutputFolder(Context ctx, String outputFolder) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("OutputFolder", outputFolder);
-        editor.commit();
-        Log.i(P.Tag, "OutputFolder: " + outputFolder + " set to persistent preferences");
+
+    public static class MyPreferenceFragment extends PreferenceFragment
+    {
+        @Override
+        public void onCreate(final Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.prefs);
+        }
+
+
     }
 
-    public static String getOutputFolder(Context ctx) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
+    }
+
+
+
+    // getSyncFolderPath
+    public static String getSyncFolderPath(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String outputFolder = sp.getString("OutputFolder", null);
+        String outputFolder = sp.getString("sync_folder_path", null);
         if (outputFolder == null) {
             Log.i(P.Tag, "outputFolder from prefs is null, setting default");
             outputFolder = Environment.getExternalStorageDirectory() + "/" + P.DEFAULT_OUTPUT_FOLDER_NAME;
         }
         return outputFolder;
+    }
+
+    public static String getSyncStartTime(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String syncStartTime = sp.getString("sync_start_time", null);
+        return syncStartTime;
+    }
+
+    public static String getSyncMaxDuration(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String syncMaxDuration = sp.getString("sync_max_duration", null);
+        return syncMaxDuration;
     }
 
     public static String getFileNameFromFilePath(String filePath) {

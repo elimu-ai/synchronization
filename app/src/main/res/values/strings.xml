@@ -10,4 +10,11 @@
     <string name="created_by">Created By LiteracyApp Synchronization Team</string>
     <string name="version">Version</string>
     <string name="ok">OK</string>
+    <string name="sync_folder_path">Sync Folder Path</string>
+    <string name="sync_folder_path_default">/sdcard/literacyapp/sync/</string>
+    <string name="start_time">Start Time</string>
+    <string name="start_time_default">2300</string>
+    <string name="sync_max_duration">Max Sync Duration (Mins)</string>
+    <string name="sync_max_duration_default">120</string>
+    <string name="prefs">Preferences</string>
 </resources>

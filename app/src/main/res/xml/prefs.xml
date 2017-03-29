@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:defaultValue="@string/sync_folder_path_default"
+        android:key="sync_folder_path"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/sync_folder_path" />
+
+    <EditTextPreference
+        android:defaultValue="@string/start_time_default"
+        android:key="sync_start_time"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/start_time" />
+
+    <EditTextPreference
+        android:defaultValue="@string/sync_max_duration_default"
+        android:key="sync_max_duration"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/sync_max_duration" />
+</PreferenceScreen>

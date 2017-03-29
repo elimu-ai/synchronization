@@ -625,7 +625,7 @@ public class WiFiDirectServiceNCD extends Service implements WifiP2pManager.Chan
                 wakeLock.acquire();
                 File f = null;
 
-                String outputFolderFromPrefs = P.getOutputFolder(getApplicationContext());
+                String outputFolderFromPrefs = P.getSyncFolderPath(getApplicationContext());
                 String outputFolderPath = null;
                 if (outputFolderFromPrefs == null) {
                     Log.w(P.TAG, "outputFolderFromPrefs no set, using default");

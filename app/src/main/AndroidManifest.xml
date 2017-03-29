@@ -27,6 +27,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".P" android:configChanges="keyboard|keyboardHidden|orientation|screenSize" />
+
         <service
             android:name=".WiFiDirectService"
             android:enabled="true"

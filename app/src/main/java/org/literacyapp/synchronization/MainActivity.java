@@ -74,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
                 gh.deleteGroups();
                 return true;
 
+            case R.id.action_prefs:
+                Log.i(P.Tag, "action_prefs selected");
+                startActivity(new Intent(getApplicationContext(), P.class));
+                return true;
+
             case R.id.action_start:
                 Log.i(P.Tag, "action_start selected");
                 Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
