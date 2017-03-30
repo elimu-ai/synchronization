@@ -26,10 +26,15 @@ public class MainActivity extends AppCompatActivity {
         P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main);
         P.DevicesHelper.cleanDeviceIds(getApplicationContext());
-        if (P.isControllerServiceAlarmOn(getApplicationContext()) == 1 || P.isControllerServiceAlarmOn(getApplicationContext()) == -1)
-            P.startControllerServiceAlarmIfNotActive(getApplicationContext());
-        else
-            P.stopControllerServiceAlarm(getApplicationContext());
+        if (isPermissionsGranted()) {
+            if (P.isControllerServiceAlarmOn(getApplicationContext()) == 1 || P.isControllerServiceAlarmOn(getApplicationContext()) == -1)
+                P.startControllerServiceAlarmIfNotActive(getApplicationContext());
+            else
+                P.stopControllerServiceAlarm(getApplicationContext());
+        }
+        else {
+            Log.w(P.Tag, "Permissions no granted, not setting alarm");
+        }
     }
 
     @Override
@@ -178,6 +183,30 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.start();
+    }
+
+    private boolean isPermissionsGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED
+                    ||
+                    checkSelfPermission(
+                            Manifest.permission.ACCESS_WIFI_STATE)
+                            != PackageManager.PERMISSION_GRANTED
+
+                    ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+
+        }
+        else {
+            return true;
+        }
+
     }
 
     protected void checkForPermissionsMAndAbove() {

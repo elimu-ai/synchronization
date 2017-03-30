@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -51,6 +52,7 @@ public class P extends PreferenceActivity {
 
     public static final String DEFAULT_OUTPUT_FOLDER_NAME = "wifi_direct_files";
     private static Status mStatus = Status.Idle;
+    private static final String CONTROLLER_ACTION = "org.literacyapp.synchronization.ControllerService";
 
     public enum Status {Idle,Discovering,FoundPeers, Connecting, Connected, SentOK, ReceivedOK,  }
 
@@ -97,20 +99,20 @@ public class P extends PreferenceActivity {
 
     public static String getSyncStartTime(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String syncStartTime = sp.getString("sync_start_time", null);
+        String syncStartTime = sp.getString("sync_start_time", ctx.getString(R.string.start_time_default));
         return syncStartTime;
     }
 
     public static String getSyncMaxDuration(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String syncMaxDuration = sp.getString("sync_max_duration", null);
+        String syncMaxDuration = sp.getString("sync_max_duration", ctx.getString(R.string.sync_max_duration_default));
         return syncMaxDuration;
     }
 
 
     public static int getSyncAlarmCycleHours(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String syncAlarmCycleHoursStr = sp.getString("sync_alarm_cycle_hours", null);
+        String syncAlarmCycleHoursStr = sp.getString("sync_alarm_cycle_hours", ctx.getString(R.string.sync_alarm_cycle_hours_default));
         int syncAlarmCycleHours = Integer.parseInt(syncAlarmCycleHoursStr);
         return syncAlarmCycleHours;
     }
@@ -453,33 +455,22 @@ public class P extends PreferenceActivity {
 
     public static void startControllerServiceAlarmIfNotActive(Context ctx) {
         Log.d(P.Tag, "startControllerServiceAlarmIfNotActive");
-        String action = "org.literacyapp.synchronization.ControllerService";
-        boolean alarmUp = (PendingIntent.getService(ctx, 0,
-                new Intent(action),
-                PendingIntent.FLAG_NO_CREATE) != null);
-
-        if (alarmUp) {
-            Log.d(P.Tag, "ControllerService Alarm is already active doing nothing");
+        PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(CONTROLLER_ACTION), 0);
+        long firstTime = getFirstTimeForAlarmInMS(ctx);
+        if (firstTime == -1) {
+            Log.e(P.Tag, "No valid start time, not setting alarm");
+            return;
         }
-        else {
-            PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(action), 0);
-            long firstTime = getFirstTimeForAlarmInMS(ctx);
-            if (firstTime == -1) {
-                Log.e(P.Tag, "No valid start time, not setting alarm");
-                return;
-            }
-            AlarmManager am = (AlarmManager) ctx.getSystemService(ctx.ALARM_SERVICE);
-            int alarmTimeHours = getSyncAlarmCycleHours(ctx);
-            long alarmTimeMS = alarmTimeHours * 60 * 60 * 1000;
-            Log.d(P.Tag, "Starting Repeating (WatchDogHandlerService), Service alarm time (Hours): " + alarmTimeHours);
-            am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, alarmTimeMS, mAlarmSender);
-        }
+        AlarmManager am = (AlarmManager) ctx.getSystemService(ctx.ALARM_SERVICE);
+        int alarmTimeHours = getSyncAlarmCycleHours(ctx);
+        long alarmTimeMS = alarmTimeHours * 60 * 60 * 1000;
+        Log.d(P.Tag, "Starting Repeating (ControllerService), Service alarm time (Hours): " + alarmTimeHours);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, firstTime, alarmTimeMS, mAlarmSender);
     }
 
 
     public static void stopControllerServiceAlarm(Context ctx) {
-        String action = "org.literacyapp.synchronization.ControllerService";
-        PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(action), 0);
+        PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(CONTROLLER_ACTION), 0);
         AlarmManager am = (AlarmManager) ctx.getSystemService(ctx.ALARM_SERVICE);
         am.cancel(mAlarmSender);
         Log.d(P.Tag, "stopControllerServiceAlarm done");

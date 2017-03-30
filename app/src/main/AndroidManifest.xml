@@ -36,11 +36,8 @@
 
         </service>
 
-        <service
-            android:name=".ControllerService"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
+        <service android:name=".ControllerService">
+             <intent-filter>
                 <action android:name="org.literacyapp.synchronization.ControllerService" />
             </intent-filter>
         </service>
