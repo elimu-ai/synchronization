@@ -32,12 +32,18 @@
         <service
             android:name=".WiFiDirectService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false">
+
+        </service>
 
         <service
             android:name=".ControllerService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.literacyapp.synchronization.ControllerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

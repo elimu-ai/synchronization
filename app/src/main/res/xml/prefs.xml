@@ -21,4 +21,11 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/sync_max_duration" />
+
+    <EditTextPreference
+        android:defaultValue="@string/sync_alarm_cycle_hours_default"
+        android:key="sync_alarm_cycle_hours"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/sync_alarm_cycle_hours" />
 </PreferenceScreen>

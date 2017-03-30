@@ -9,8 +9,8 @@ android {
         applicationId "org.literacyapp.synchronization"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 1000001
-        versionName "1.000.001"
+        versionCode 1000003
+        versionName "1.000.003"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

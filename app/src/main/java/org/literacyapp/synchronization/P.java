@@ -1,7 +1,10 @@
 package org.literacyapp.synchronization;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -17,6 +20,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -98,6 +105,14 @@ public class P extends PreferenceActivity {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
         String syncMaxDuration = sp.getString("sync_max_duration", null);
         return syncMaxDuration;
+    }
+
+
+    public static int getSyncAlarmCycleHours(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String syncAlarmCycleHoursStr = sp.getString("sync_alarm_cycle_hours", null);
+        int syncAlarmCycleHours = Integer.parseInt(syncAlarmCycleHoursStr);
+        return syncAlarmCycleHours;
     }
 
     public static String getFileNameFromFilePath(String filePath) {
@@ -384,7 +399,7 @@ public class P extends PreferenceActivity {
 
 
         public static String getDevicesStatusAsString(Context ctx) {
-            Log.d(P.Tag, "===getDevicesStatusAsString");
+            //Log.d(P.Tag, "===getDevicesStatusAsString");
             String devicesStatusStr = "";
             String line = "";
             Set<String> deviceIds = getDeviceIds(ctx);
@@ -403,6 +418,93 @@ public class P extends PreferenceActivity {
             return devicesStatusStr;
         }
 
+    }
+
+
+    private static long getFirstTimeForAlarmInMS(Context ctx) {
+        long timeForAlarmInMS = -1;
+        String timeForAlarmStr = getSyncStartTime(ctx);
+        Calendar cal = Calendar.getInstance();
+        String dateStr = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+        String dateWithTime = dateStr + " " + timeForAlarmStr;
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");
+        try {
+            Date date = dateFormat.parse(dateWithTime);
+            Date now = new Date();
+            if (date.after(now)) {
+                Log.d(P.Tag, "alarm start dateWithTime: " + dateWithTime);
+                timeForAlarmInMS = date.getTime();
+            }
+            else {
+                // add one day
+                cal.add(Calendar.DATE, 1);
+                dateStr = new SimpleDateFormat("dd-MM-yyyy").format(cal.getTime());
+                dateWithTime = dateStr + " " + timeForAlarmStr;
+                Log.d(P.Tag, "alarm start dateWithTime (one day added): " + dateWithTime);
+                date = dateFormat.parse(dateWithTime);
+                timeForAlarmInMS = date.getTime();
+            }
+        } catch (ParseException e) {
+            Log.e(P.Tag, e.getMessage(), e);
+        }
+        return timeForAlarmInMS;
+    }
+
+    public static void startControllerServiceAlarmIfNotActive(Context ctx) {
+        Log.d(P.Tag, "startControllerServiceAlarmIfNotActive");
+        String action = "org.literacyapp.synchronization.ControllerService";
+        boolean alarmUp = (PendingIntent.getService(ctx, 0,
+                new Intent(action),
+                PendingIntent.FLAG_NO_CREATE) != null);
+
+        if (alarmUp) {
+            Log.d(P.Tag, "ControllerService Alarm is already active doing nothing");
+        }
+        else {
+            PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(action), 0);
+            long firstTime = getFirstTimeForAlarmInMS(ctx);
+            if (firstTime == -1) {
+                Log.e(P.Tag, "No valid start time, not setting alarm");
+                return;
+            }
+            AlarmManager am = (AlarmManager) ctx.getSystemService(ctx.ALARM_SERVICE);
+            int alarmTimeHours = getSyncAlarmCycleHours(ctx);
+            long alarmTimeMS = alarmTimeHours * 60 * 60 * 1000;
+            Log.d(P.Tag, "Starting Repeating (WatchDogHandlerService), Service alarm time (Hours): " + alarmTimeHours);
+            am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, alarmTimeMS, mAlarmSender);
+        }
+    }
+
+
+    public static void stopControllerServiceAlarm(Context ctx) {
+        String action = "org.literacyapp.synchronization.ControllerService";
+        PendingIntent mAlarmSender = PendingIntent.getService(ctx, 0, new Intent(action), 0);
+        AlarmManager am = (AlarmManager) ctx.getSystemService(ctx.ALARM_SERVICE);
+        am.cancel(mAlarmSender);
+        Log.d(P.Tag, "stopControllerServiceAlarm done");
+    }
+
+    /**
+     *
+     * @param ctx
+     * @return 1 = on; 0 = off; -1 = undefined;
+     */
+    public static int isControllerServiceAlarmOn(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        return sp.getInt("ControllerServiceAlarmOn", -1);
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param isOn 1 = on; 0 = off; -1 = undefined;
+     */
+    public static void setControllerServiceAlarm(Context ctx, int isOn) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("ControllerServiceAlarmOn", isOn);
+        editor.commit();
     }
 
 

@@ -2,6 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <item android:id="@+id/action_alarm_start" android:title="@string/start_alarm"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_alarm_stop" android:title="@string/stop_alarm"
+        app:showAsAction="never" />
+
     <item android:id="@+id/action_start" android:title="@string/start"
         app:showAsAction="never" />
 

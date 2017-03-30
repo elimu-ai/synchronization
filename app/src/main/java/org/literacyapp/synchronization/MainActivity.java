@@ -26,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
         P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main);
         P.DevicesHelper.cleanDeviceIds(getApplicationContext());
-//        Log.i(P.Tag, "starting controller");
-//        Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
-//        startService(i4);
+        if (P.isControllerServiceAlarmOn(getApplicationContext()) == 1 || P.isControllerServiceAlarmOn(getApplicationContext()) == -1)
+            P.startControllerServiceAlarmIfNotActive(getApplicationContext());
+        else
+            P.stopControllerServiceAlarm(getApplicationContext());
     }
 
     @Override
@@ -56,6 +57,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_alarm_start:
+                Log.i(P.Tag, "action_alarm_start selected");
+                P.startControllerServiceAlarmIfNotActive(getApplicationContext());
+                P.setControllerServiceAlarm(getApplicationContext(), 1);
+                return true;
+
+            case R.id.action_alarm_stop:
+                Log.i(P.Tag, "action_stop_controller selected");
+                P.stopControllerServiceAlarm(getApplicationContext());
+                P.setControllerServiceAlarm(getApplicationContext(), 0);
+                return true;
             case R.id.action_stop_wifi_direct:
                 Log.i(P.Tag, "action_stop_wifi_direct selected");
                 Intent i1 = new Intent(getApplicationContext(), WiFiDirectService.class);
@@ -138,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         final TextView devicesStatusText = ((TextView) findViewById(R.id.statusDevices));
         new Thread() {
             public void run() {
-                Log.d(P.Tag,"Status Update started");
+                //Log.d(P.Tag,"Status Update started");
                 try {
                     while (true) {
 
