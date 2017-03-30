@@ -13,12 +13,15 @@
     <string name="version">Version</string>
     <string name="ok">OK</string>
     <string name="sync_folder_path">Sync Folder Path</string>
-    <string name="sync_folder_path_default">/sdcard/literacyapp/sync/</string>
+    <string name="sync_folder_path_default">/sdcard/wifi_direct_files/</string>
+    <string name="my_folder_path">My Folder Path</string>
+    <string name="my_folder_path_default">/sdcard/literacyapp/my/</string>
     <string name="start_time">Start Time</string>
     <string name="start_time_default">23:00</string>
-    <string name="sync_max_duration">Max Sync Duration (Mins)</string>
-    <string name="sync_max_duration_default">120</string>
+    <string name="sync_max_duration_min">Max Sync Duration (Mins)</string>
+    <string name="sync_max_duration_min_default">120</string>
     <string name="sync_alarm_cycle_hours">Alarm Cycle (Hours)</string>
     <string name="sync_alarm_cycle_hours_default">24</string>
+    <string name="sync_test_folder">Sync Test Folder</string>
     <string name="prefs">Preferences</string>
 </resources>

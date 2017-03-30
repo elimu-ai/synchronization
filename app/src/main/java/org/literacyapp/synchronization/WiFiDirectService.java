@@ -380,8 +380,13 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
 
                 if (senderReceiverType.equals(P.SENDER)) {
                     Log.i(P.Tag, "Forced as sender");
-                    //sendTestFile(info.groupOwnerAddress.getHostAddress());
-                    sendTestFolder(info.groupOwnerAddress.getHostAddress());
+                    if (P.isSyncTestFolder(getApplicationContext())) {
+                        //sendTestFile(info.groupOwnerAddress.getHostAddress());
+                        sendTestFolder(info.groupOwnerAddress.getHostAddress());
+                    }
+                    else {
+                        sendMyFolder(info.groupOwnerAddress.getHostAddress());
+                    }
                 }
                 else {
                     if (info.groupFormed && info.isGroupOwner) {
@@ -488,7 +493,13 @@ public class WiFiDirectService extends Service implements WifiP2pManager.Channel
         Log.d(P.Tag, "sendTestFolder(): " + testFolderPath);
         File testFolder = new File(testFolderPath);
         new FilesSendAsyncTask(getApplicationContext(), testFolder, hostAddress, P.PORT).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
 
+    private void sendMyFolder(String hostAddress) {
+        String folderPath = P.getMyFolderPath(getApplicationContext());
+        Log.d(P.Tag, "sendMyFolder(): " + folderPath);
+        File folder = new File(folderPath);
+        new FilesSendAsyncTask(getApplicationContext(), folder, hostAddress, P.PORT).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 

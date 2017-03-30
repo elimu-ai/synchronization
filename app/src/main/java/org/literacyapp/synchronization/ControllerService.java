@@ -94,7 +94,8 @@ public class ControllerService extends Service {
                     controllerTimer.cancel();
                 }
 
-                long controllerRunTimeMS = P.CONTROLLER_RUN_TIME_MINS * 60000;
+                int controllerRunTimeMin = Integer.parseInt(P.getSyncMaxDurationMin(getApplicationContext()));
+                long controllerRunTimeMS = controllerRunTimeMin * 60000;
                 if ((startTime - System.currentTimeMillis() ) > controllerRunTimeMS) {
                     Log.w(P.Tag, "===Controller timed-out");
                     isKillService = true;

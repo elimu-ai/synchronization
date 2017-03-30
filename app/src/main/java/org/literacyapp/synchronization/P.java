@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -44,7 +43,7 @@ public class P extends PreferenceActivity {
     public static final int CONTROLLER_BASE_SESSION_INTERVAL_TIME_MINS = 2;
     public static final int CONTROLLER_DIFF_SESSION_INTERVAL_TIME_SECS = 5*60;
 
-    public static final int CONTROLLER_RUN_TIME_MINS = 25;
+    //public static final int CONTROLLER_RUN_TIME_MINS = 25;
 
     public static final String TEST_SUB_FOLDER1 = "/test_files/l1/";
     public static final String TEST_SUB_FOLDER2 = "/test_files/l1/l2/";
@@ -89,12 +88,25 @@ public class P extends PreferenceActivity {
     // getSyncFolderPath
     public static String getSyncFolderPath(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String outputFolder = sp.getString("sync_folder_path", null);
+        String outputFolder = sp.getString("sync_folder_path", ctx.getString(R.string.sync_folder_path_default));
         if (outputFolder == null) {
             Log.i(P.Tag, "outputFolder from prefs is null, setting default");
             outputFolder = Environment.getExternalStorageDirectory() + "/" + P.DEFAULT_OUTPUT_FOLDER_NAME;
         }
         return outputFolder;
+    }
+
+    public static boolean isSyncTestFolder(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        boolean b = sp.getBoolean("sync_test_folder", true);
+        return b;
+    }
+
+
+    public static String getMyFolderPath(Context ctx) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        String f = sp.getString("my_folder_path", ctx.getString(R.string.my_folder_path_default));
+        return f;
     }
 
     public static String getSyncStartTime(Context ctx) {
@@ -103,9 +115,9 @@ public class P extends PreferenceActivity {
         return syncStartTime;
     }
 
-    public static String getSyncMaxDuration(Context ctx) {
+    public static String getSyncMaxDurationMin(Context ctx) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        String syncMaxDuration = sp.getString("sync_max_duration", ctx.getString(R.string.sync_max_duration_default));
+        String syncMaxDuration = sp.getString("sync_max_duration", ctx.getString(R.string.sync_max_duration_min_default));
         return syncMaxDuration;
     }
 
