@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">Synchronization (LiteracyApp)</string>
+    <string name="stop_wifi">Stop WiFi Direct Service</string>
+    <string name="stop_controller">Stop Controller Service</string>
+    <string name="delete_groups">Delete Groups</string>
+    <string name="start">Start Controller</string>
+    <string name="start_alarm">Start Alarm</string>
+    <string name="stop_alarm">Stop Alarm</string>
+    <string name="start_sender">Start as sender</string>
+    <string name="start_receiver">Start as receiver</string>
+    <string name="about">About</string>
+    <string name="created_by">Created By LiteracyApp Synchronization Team</string>
+    <string name="version">Version</string>
+    <string name="ok">OK</string>
+    <string name="sync_folder_path">Sync Folder Path</string>
+    <string name="sync_folder_path_default">/sdcard/wifi_direct_files/</string>
+    <string name="my_folder_path">My Folder Path</string>
+    <string name="my_folder_path_default">/sdcard/literacyapp/my/</string>
+    <string name="start_time">Start Time</string>
+    <string name="start_time_default">23:00</string>
+    <string name="sync_max_duration_min">Max Sync Duration (Mins)</string>
+    <string name="sync_max_duration_min_default">120</string>
+    <string name="sync_alarm_cycle_hours">Alarm Cycle (Hours)</string>
+    <string name="sync_alarm_cycle_hours_default">24</string>
+    <string name="sync_test_folder">Sync Test Folder</string>
+    <string name="prefs">Preferences</string>
 </resources>
