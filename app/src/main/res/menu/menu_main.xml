@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_alarm_start" android:title="@string/start_alarm"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_alarm_stop" android:title="@string/stop_alarm"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_start" android:title="@string/start"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_stop_controller" android:title="@string/stop_controller"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_start_sender" android:title="@string/start_sender"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_start_receiver" android:title="@string/start_receiver"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_stop_wifi_direct" android:title="@string/stop_wifi"
+        app:showAsAction="never" />
+
+
+
+    <item android:id="@+id/action_delete_groups" android:title="@string/delete_groups"
+    app:showAsAction="never" />
+
+
+    <item android:id="@+id/action_prefs" android:title="@string/prefs"
+        app:showAsAction="never" />
+
+
+    <item android:id="@+id/action_about" android:title="@string/about"
+        app:showAsAction="never" />
+
+</menu>

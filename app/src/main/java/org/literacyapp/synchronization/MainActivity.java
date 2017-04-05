@@ -1,289 +1,246 @@
 package org.literacyapp.synchronization;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.wifi.WifiManager;
-import android.os.Environment;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.os.Build;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.widget.TextView;
 
-import com.bluelinelabs.logansquare.LoganSquare;
-import com.peak.salut.Callbacks.SalutCallback;
-import com.peak.salut.Callbacks.SalutDataCallback;
-import com.peak.salut.Callbacks.SalutDeviceCallback;
-import com.peak.salut.Salut;
-import com.peak.salut.SalutDataReceiver;
-import com.peak.salut.SalutDevice;
-import com.peak.salut.SalutServiceData;
+public class MainActivity extends AppCompatActivity {
 
-import org.literacyapp.synchronization.jsonmodel.JsonFileModel;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-public class MainActivity extends AppCompatActivity implements SalutDataCallback, View.OnClickListener {
-    public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0;
-    private static final String SERVICE_NAME = "LITERACYAPP_SYNCHRONIZATION_SERVICE";
-    private static final int PORT = 47474;
-    private static final String TEST_FILE_PATH = Environment.getExternalStorageDirectory() + "/img.jpg";
-    private SalutDataReceiver dataReceiver;
-    private SalutServiceData serviceData;
-    private Salut network;
-    private Button setupNetworkButton;
-    private Button discoverServicesButton;
-    private Button sendFileButton;
-    private SalutDevice targetDevice;
+    private boolean isUIUpdateRunning = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i(getClass().getName(), "onCreate");
         super.onCreate(savedInstanceState);
+        checkForPermissionsMAndAbove();
+        P.copyTestFileFromAssetsToLocalAppFolderIfNeeded(getApplicationContext());
+        P.createTestFolderIfNeeded(getApplicationContext());
         setContentView(R.layout.activity_main);
-
-        //Create a data receiver object that will bind the callback with some instantiated object from our app
-        dataReceiver = new SalutDataReceiver(this, this);
-
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        //Populate the details for our service
-        serviceData = new SalutServiceData(SERVICE_NAME, PORT, deviceId);
-
-        /*Create an instance of the Salut class, with all of the necessary data from before.
-        * We'll also provide a callback just in case a device doesn't support WiFi Direct, which
-        * Salut will tell us about before we start trying to use methods.*/
-        network = new Salut(dataReceiver, serviceData, new SalutCallback() {
-            @Override
-            public void call() {
-                Log.e(getClass().getName(), "Sorry, but this device does not support WiFi Direct.");
-            }
-        });
-
-        setupNetworkButton = (Button)findViewById(R.id.setupNetwork);
-        setupNetworkButton.setOnClickListener(this);
-
-        discoverServicesButton = (Button)findViewById(R.id.discoverServices);
-        discoverServicesButton.setOnClickListener(this);
-
-        sendFileButton = (Button)findViewById(R.id.sendFile);
-        sendFileButton.setOnClickListener(this);
-        sendFileButton.setEnabled(false);
-    }
-
-    @Override
-    public void onDataReceived(Object data) {
-        Log.d(getClass().getName(), "Received network data.");
-        try
-        {
-            JsonFileModel jsonFileModel = LoganSquare.parse(data.toString().replace("\"{","{").replace("}\"","}").replace("\\",""), JsonFileModel.class);
-            File file = new File(TEST_FILE_PATH);
-            byteArrayToBitmapFile(jsonFileModel.byteArray, file);
-            Log.i(getClass().getName(), "File stored under: " + file.getAbsolutePath());
+        P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+        if (isPermissionsGranted()) {
+            if (P.isControllerServiceAlarmOn(getApplicationContext()) == 1 || P.isControllerServiceAlarmOn(getApplicationContext()) == -1)
+                P.startControllerServiceAlarmIfNotActive(getApplicationContext());
+            else
+                P.stopControllerServiceAlarm(getApplicationContext());
         }
-        catch (IOException ex)
-        {
-            Log.e(getClass().getName(), "Failed to parse network data.");
-        }
-    }
-
-    private void setupNetwork()
-    {
-        if(!network.isRunningAsHost)
-        {
-            network.startNetworkService(new SalutDeviceCallback() {
-                @Override
-                public void call(SalutDevice salutDevice) {
-                    Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_SHORT).show();
-                    targetDevice = salutDevice;
-                    enableFileSending();
-                }
-            });
-
-            setupNetworkButton.setText("Stop Service");
-            discoverServicesButton.setAlpha(0.5f);
-            discoverServicesButton.setClickable(false);
-        }
-        else
-        {
-            network.stopNetworkService(false);
-            setupNetworkButton.setText("Start Service");
-            discoverServicesButton.setAlpha(1f);
-            discoverServicesButton.setClickable(true);
-        }
-    }
-
-    private void discoverServices()
-    {
-        if(!network.isRunningAsHost && !network.isDiscovering)
-        {
-            network.discoverNetworkServices(new SalutCallback() {
-                @Override
-                public void call() {
-                    network.registerWithHost(network.foundDevices.get(0), new SalutCallback() {
-                        @Override
-                        public void call() {
-                            Log.d(getClass().getName(), "We're now registered.");
-                            enableFileSending();
-                        }
-                    }, new SalutCallback() {
-                        @Override
-                        public void call() {
-                            Log.d(getClass().getName(), "We failed to register.");
-                        }
-                    });
-                }
-            }, true);
-            discoverServicesButton.setText("Stop Discovery");
-            setupNetworkButton.setAlpha(0.5f);
-            setupNetworkButton.setClickable(false);
-        }
-        else
-        {
-            network.stopServiceDiscovery(true);
-            discoverServicesButton.setText("Discover Services");
-            setupNetworkButton.setAlpha(1f);
-            setupNetworkButton.setClickable(false);
+        else {
+            Log.w(P.Tag, "Permissions no granted, not setting alarm");
         }
     }
 
     @Override
-    public void onClick(View view) {
-        // Check if Wifi is enabled. Enable if not.
-        if (!Salut.isWiFiEnabled(getApplicationContext())){
-            WifiManager wifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-            wifiManager.setWifiEnabled(true);
-        }
-
-        switch (view.getId()){
-            case R.id.setupNetwork:
-                setupNetwork();
-                break;
-            case R.id.discoverServices:
-                discoverServices();
-                break;
-            case R.id.sendFile:
-                sendFile();
-                break;
-        }
+    protected void onPause() {
+        super.onPause();
+        isUIUpdateRunning = false;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        if(network.isRunningAsHost)
-            network.stopNetworkService(true);
-        else
-            network.unregisterClient(true);
+    protected void onResume() {
+        super.onResume();
+        isUIUpdateRunning = true;
+        updateUI();
     }
 
-    private byte[] bitmapFileToByteArray(File file){
-        if (file.exists()){
-            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
-            try {
-                ObjectOutputStream out = new ObjectOutputStream(bos);
-                out.writeObject(file);
-                out.flush();
-                return bos.toByteArray();
-            } catch (IOException e) {
-                Log.e(getClass().getName(), null, e);
-                return null;
-            }
-        } else {
-            Log.i(getClass().getName(), "bitmapFileToByteArray: File " + file.getAbsolutePath() + " does not exist.");
-            return null;
-        }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        Log.i(P.Tag, "onCreateOptionsMenu");
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
     }
 
-    private void byteArrayToBitmapFile(byte[] byteArray, File file){
-        try {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
-        } catch (IOException e) {
-            Log.e(getClass().getName(), null, e);
-        }
-    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_alarm_start:
+                Log.i(P.Tag, "action_alarm_start selected");
+                P.startControllerServiceAlarmIfNotActive(getApplicationContext());
+                P.setControllerServiceAlarm(getApplicationContext(), 1);
+                return true;
 
-    private void enableFileSending(){
-        sendFileButton.setEnabled(true);
-    }
+            case R.id.action_alarm_stop:
+                Log.i(P.Tag, "action_stop_controller selected");
+                P.stopControllerServiceAlarm(getApplicationContext());
+                P.setControllerServiceAlarm(getApplicationContext(), 0);
+                return true;
+            case R.id.action_stop_wifi_direct:
+                Log.i(P.Tag, "action_stop_wifi_direct selected");
+                Intent i1 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                stopService(i1);
+                return true;
 
-    private void sendFile(){
-        File file = new File(TEST_FILE_PATH);
-        JsonFileModel jsonFileModel = new JsonFileModel();
-        jsonFileModel.byteArray = bitmapFileToByteArray(file);
-        if (jsonFileModel.byteArray != null){
-            String data = null;
-            try {
-                data = LoganSquare.serialize(jsonFileModel);
-                if (network.isRunningAsHost){
-                    if (targetDevice != null){
-                        network.sendToDevice(targetDevice, data, new SalutCallback() {
-                            @Override
-                            public void call() {
-                                Log.e(getClass().getName(), "sendToDevice: deviceName: " + targetDevice.deviceName + " Failure!");
+            case R.id.action_stop_controller:
+                Log.i(P.Tag, "action_stop_controller selected");
+                Intent i5 = new Intent(getApplicationContext(), ControllerService.class);
+                stopService(i5);
+                return true;
+
+            case R.id.action_delete_groups:
+                Log.i(P.Tag, "action_delete_groups selected");
+                GroupDeleteHelper gh = new GroupDeleteHelper(getApplicationContext(), true);
+                gh.deleteGroups();
+                return true;
+
+            case R.id.action_prefs:
+                Log.i(P.Tag, "action_prefs selected");
+                startActivity(new Intent(getApplicationContext(), P.class));
+                return true;
+
+            case R.id.action_start:
+                Log.i(P.Tag, "action_start selected");
+                Intent i4 = new Intent(getApplicationContext(), ControllerService.class);
+                startService(i4);
+                return true;
+
+
+            case R.id.action_start_sender:
+                Log.i(P.Tag, "action_start sender selected");
+                P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+                GroupDeleteHelper gh2 = new GroupDeleteHelper(getApplicationContext(), true);
+                gh2.deleteGroups();
+                Intent i2 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                i2.putExtra("sender_receiver", P.SENDER);
+                startService(i2);
+                return true;
+
+            case R.id.action_start_receiver:
+                Log.i(P.Tag, "action_start receiver selected");
+                P.DevicesHelper.cleanDeviceIds(getApplicationContext());
+                GroupDeleteHelper gh3 = new GroupDeleteHelper(getApplicationContext(), true);
+                gh3.deleteGroups();
+                Intent i3 = new Intent(getApplicationContext(), WiFiDirectService.class);
+                i3.putExtra("sender_receiver", P.RECEIVER);
+                startService(i3);
+                return true;
+
+
+            case R.id.action_about:
+                Log.i(P.Tag, "action_about");
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(getString(R.string.about)).
+                        setMessage(getAboutText()).
+                        setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // User clicked OK button
                             }
                         });
-                    }
-                } else {
-                    network.sendToHost(data, new SalutCallback() {
-                        @Override
-                        public void call() {
-                            Log.e(getClass().getName(), "sendToHost: Failure!");
+
+                AlertDialog about  = builder.create();
+                about.show();
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private String getAboutText() {
+        StringBuffer b = new StringBuffer();
+        b.append(getString(R.string.created_by) + "\n" + getString(R.string.version) + ":  ");
+        b.append(P.getVersionName(getApplicationContext()) + "\n");
+        return b.toString();
+    }
+
+    private void updateUI () {
+        final TextView statusText = ((TextView) findViewById(R.id.statusTextView));
+        final TextView devicesStatusText = ((TextView) findViewById(R.id.statusDevices));
+        new Thread() {
+            public void run() {
+                //Log.d(P.Tag,"Status Update started");
+                try {
+                    while (true) {
+
+                        if (isUIUpdateRunning == false) {
+                            Log.d(P.Tag, "Stopping status update.");
+                            break;
                         }
-                    });
+                        try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
+                        final String status = P.getStatus().toString();
+                        final String type = P.SENDER_RECEIVER_TYPE;
+                        //Log.d(P.Tag, "check state");
+                        runOnUiThread(new Runnable() { public void run() {
+                            String textStr = null;
+                            if (type != null) {
+                                textStr = type + " " + status;
+                            }
+                            else {textStr = status;}
+                            statusText.setText(textStr);
+                            devicesStatusText.setText(P.DevicesHelper.getDevicesStatusAsString(getApplicationContext()));
+                        } });
+                    }
+
+                } catch(Exception e) {
+                    Log.e("threadmessage",e.getMessage(), e);
                 }
-            } catch (IOException e) {
-                Log.e(getClass().getName(), null, e);
             }
-        }
+        }.start();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private boolean isPermissionsGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED
+                    ||
+                    checkSelfPermission(
+                            Manifest.permission.ACCESS_WIFI_STATE)
+                            != PackageManager.PERMISSION_GRANTED
 
-        // Ask for permissions
-        int permissionCheckWriteExternalStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permissionCheckWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
-            return;
+                    ) {
+                return false;
+            }
+            else {
+                return true;
+            }
+
         }
+        else {
+            return true;
+        }
+
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    protected void checkForPermissionsMAndAbove() {
+        Log.i(P.Tag, "checkForPermissions() called");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Here, thisActivity is the current activity
+            if (checkSelfPermission(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED
+                    ||
+                    checkSelfPermission(
+                            Manifest.permission.ACCESS_WIFI_STATE)
+                            != PackageManager.PERMISSION_GRANTED
 
-        if (requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
-            if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permission granted
+                    ) {
 
-                // Restart application
-                Intent intent = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-            } else {
-                // Permission denied
 
-                // Close application
-                finish();
+                // No explanation needed, we can request the permission.
+                requestPermissions(
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.ACCESS_WIFI_STATE,
+                                Manifest.permission.WAKE_LOCK,
+                                Manifest.permission.CHANGE_WIFI_STATE,
+                        },
+                        0);
+
+
+
+            }
+            // permission already granted
+            else {
+                Log.i(P.Tag, "permission already granted");
             }
         }
+
     }
 }
