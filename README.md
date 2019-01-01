@@ -1,2 +1,3 @@
-# synchronization
+# Synchronization
+
 Android application which finds and connects to nearby devices
